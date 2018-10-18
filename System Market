@@ -1,212 +1,132 @@
-# Projeto-PIM
-PIM - Projeto Integrado Multidisciplinar
-
-Projeto semestral na Faculdade Unip- Universidade Paulista / 2018
--
-|
-|
-|
-|
-|
--
 #include <stdio.h>
 #include <stdlib.h>
 
-//--------------------------------------------------------------
-void systemFinanceiro()
+typedef struct numero
 {
-    printf("\n*************************************************");
-    printf("\n*          Sistema de Administrativo            *");
-    printf("\n*                                               *");
-    printf("\n*   1 - Saldo de Vendas do Dia                  *");
-    printf("\n*   2 - Produtos Vendidos                       *");
-    printf("\n*                                               *");
-    printf("\n*   5 - Sair                                    *");
-    printf("\n*                                               *");
-    printf("\n*************************************************\n");
-}
+    int valor;
+    struct Numero *proximo;
+} Numero;
 
-//--------------------------------------------------------------
+Numero *inicio = NULL;
 
-void DesingCaixa()
-{
-    printf("*************************************************");
-    printf("\n*            Sistema de Mercado               *");
-    printf("\n*                                               *");
-    printf("\n*   1 - Iniciar Compras                         *");
-    printf("\n*   2 - Seus Produtos                           *");
-    printf("\n*                                               *");
-    printf("\n*   5 - Sair                                    *");
-    printf("\n*                                               *");
-    printf("\n*************************************************\n");
-}
-
-void menu()
-{
-    printf("*************************************************");
-    printf("\n*            Sistema de Mercado                *");
-    printf("\n*                                               *");
-    printf("\n*   1 - Sistema de Caixa                        *");
-    printf("\n*   2 - Sistema Financeiro                      *");
-    printf("\n*                                               *");
-    printf("\n*   5 - Sair                                    *");
-    printf("\n*                                               *");
-    printf("\n*************************************************");
-}
-
-struct Produtos listaProdutos(struct produtos *x, int tamanho)
-{
-    for(int i;i<tamanho;i++)
-    {
-        printf("%d\t   %s\t\t\t%d",x.codProduct,x.nameProduct,x.valueProduct);
-    }
-    return x;
-}
-
-typedef struct Produtos
-{
-    int codProduct[4];
-    char nameProduct[10];
-    float valueProduct;
-}produtos;
+int imprimeMenu();
+void sair();
+void adicionar();
+void listar();
+void remover();
 
 int main()
 {
-    produtos *lista[5];
     int op;
 
-    do{
-    menu();
-    printf("\nOpcao: ");
-    scanf("%d",&op);
-        switch(op)
-        {
-            case 1:
-
-                    DesingCaixa();
-                    printf("\nOpcao: ");
-                    scanf("%d",&op);
-                    switch(op)
-                    {
-                        case 1:
-                            //do{
-                                listaProdutos(&lista,5);
-                            //}while(sn != 'n');
-                    }
-            break;
-
-            case 2:
-                    systemFinanceiro();
-
-            break;
-
-            case 5: break;
-            default:
-                    printf("\n\nEntre com uma opcao valida!");
-            break;
-        }
-    }while(op!=5);
-}
-
-
-//
-
-
-#include <stdio.h>
-#include <stdlib.h>
-
-//--------------------------------------------------------------
-void systemFinanceiro()
-{
-    printf("\n*************************************************");
-    printf("\n*          Sistema de Administrativo            *");
-    printf("\n*                                               *");
-    printf("\n*   1 - Saldo de Vendas do Dia                  *");
-    printf("\n*   2 - Produtos Vendidos                       *");
-    printf("\n*                                               *");
-    printf("\n*   5 - Sair                                    *");
-    printf("\n*                                               *");
-    printf("\n*************************************************\n");
-}
-
-//--------------------------------------------------------------
-
-void DesingCaixa()
-{
-    printf("*************************************************");
-    printf("\n*            Sistema de Mercado               *");
-    printf("\n*                                               *");
-    printf("\n*   1 - Iniciar Compras                         *");
-    printf("\n*   2 - Seus Produtos                           *");
-    printf("\n*                                               *");
-    printf("\n*   5 - Sair                                    *");
-    printf("\n*                                               *");
-    printf("\n*************************************************\n");
-}
-
-void menu()
-{
-    printf("*************************************************");
-    printf("\n*            Sistema de Mercado                *");
-    printf("\n*                                               *");
-    printf("\n*   1 - Sistema de Caixa                        *");
-    printf("\n*   2 - Sistema Financeiro                      *");
-    printf("\n*                                               *");
-    printf("\n*   5 - Sair                                    *");
-    printf("\n*                                               *");
-    printf("\n*************************************************");
-}
-
-struct Produtos listaProdutos(struct produtos *x, int tamanho)
-{
-    for(int i;i<tamanho;i++)
+    do
     {
-        printf("%d\t   %s\t\t\t%d",x.codProduct,x.nameProduct,x.valueProduct);
-    }
-    return x;
-}
-
-typedef struct Produtos
-{
-    int codProduct[4];
-    char nameProduct[10];
-    float valueProduct;
-}produtos;
-
-int main()
-{
-    produtos lista[5];
-    int op;
-
-    do{
-    menu();
-    printf("\nOpcao: ");
-    scanf("%d",&op);
+        system("CLS");
+        op = imprimeMenu();
         switch(op)
         {
-            case 1:
-
-                    DesingCaixa();
-                    printf("\nOpcao: ");
-                    scanf("%d",&op);
-                    switch(op)
-                    {
-                        case 1:
-                            //do{
-                                listaProdutos(&lista,5);
-                            //}while(sn != 'n');
-                    }
-            break;
-
-            case 2:
-                    systemFinanceiro();
-
-            break;
-
-            case 5: break;
-            default:
-                    printf("\n\nEntre com uma opcao valida!");
-            break;
+            case 0: sair(); break;
+            case 1: adicionar(); break;
+            case 2: listar(); break;
+            case 3: remover(); break;
         }
-    }while(op!=5);
+    }while(op!=0);
+
+    return 0;
+}
+
+int imprimeMenu()
+{
+    int op;
+
+    printf("\n*** MENU ***\n\n");
+    printf("0 - Sair");
+    printf("\n1 - Adicionar");
+    printf("\n2 - Listar");
+    printf("\n3 - Remover");
+    printf("\n\nEntre com a opcao desejada: ");
+    scanf("%d",&op);
+    fflush(stdin);
+    return op;
+}
+
+void sair()
+{
+    printf("\n\nBye...\n\n");
+}
+
+void adicionar()
+{
+    Numero *novo = (Numero *) malloc(sizeof(Numero));
+    novo->proximo = NULL;
+    Numero *aux = inicio;
+    printf("\n\nEntre com novo numero: ");
+    scanf("%d",&novo->valor);
+    fflush(stdin);
+    if(inicio==NULL)
+    {
+        inicio= novo;
+    }
+    else
+    {
+        while(aux->proximo!=NULL)
+        {
+            aux = aux->proximo;
+        }
+        aux->proximo = novo;
+    }
+}
+
+void listar()
+{
+    Numero *aux = inicio;
+
+    int c;
+
+    if(aux == NULL)
+    {
+        printf("\n---------------------------\n\n");
+        printf("\n\nA lista esta vazia.\n\n");
+        printf("\n---------------------------\n\n");
+        c = getchar();
+    }
+    if(aux != NULL)
+    {
+        printf("\n\tNumeros");
+        printf("\n---------------------------\n\n");
+        while(aux!=NULL)
+        {
+            printf("%d\n",aux->valor);
+            aux=aux->proximo;
+        }
+        printf("\n---------------------------\n\n");
+        c = getchar();
+    }
+}
+
+void remover()
+{
+    Numero *remove = inicio;
+    int c;
+    if(inicio == NULL)
+    {
+        printf("\n---------------------------\n\n");
+        printf("\n\nA lista esta vazia.\n\n");
+        printf("\n---------------------------\n\n");
+        c = getchar();
+    }
+    else
+    {
+        if(inicio->proximo ==  NULL)
+        {
+            inicio = NULL;
+        }
+        else
+        {
+            inicio=inicio->proximo;
+            free(remove);
+            remove = NULL;
+        }
+        listar();
+    }
 }
