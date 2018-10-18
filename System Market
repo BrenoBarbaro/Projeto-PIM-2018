@@ -4,7 +4,6 @@
 #include <windows.h>
 #include <conio.h>
 
-
 typedef struct produtos
 {
     char codProduto[5];
@@ -229,7 +228,6 @@ void adicionarProdutos()
     Lista *aux;
     aux = inicio;
 
-
         system("CLS");
         printf("*********************************************************************");
         printf("\n*                                                                   *");
@@ -276,22 +274,27 @@ void ExibeProdutos()
     system("CLS");
     if(aux!=NULL)
     {
-        //                                    LINHAS
-        //printf("123456789111111111122222222223333333333444444444455555555556666666666");
-        //printf("         012345678901234567890123456789012345678901234567890123456789");
-        //
-        printf("*********************************************************************");
-        printf("\n                                                                     ");
-        printf("\n    Codigo:          Nome:                       Valor:              \n\n");
+        Lista *temp;
+        
         while(aux!=NULL)
         {
-            printf("Cod. Produto: %s\n",aux->codProduto);
-            printf("Nome Produto: %s\n",aux->nomeProduto);
-            printf("Valor Produto: %2lf\n\n",aux->valoProduto);
+            if()
+        }
+        int y=5;
+        printf("***********************************************************************\n");
+        printf("                                                                       \n");
+        printf("    Codigo:              Nome:                       Valor:              ");
+        printf("                                                                       ");
+        while(aux!=NULL)
+        {
+            gotoxy(5,y);printf("%s",aux->codProduto);
+            gotoxy(26,y);printf("%s",aux->nomeProduto);
+            gotoxy(54,y);printf("%0.2lf",aux->valoProduto);
             aux = aux->proximo;
+            y++;
         }
         printf("\n                                                                     ");
-        printf("\n*********************************************************************\n\n");
+        printf("\n***********************************************************************\n\n");
     }
 }
 
@@ -307,6 +310,3 @@ void sair()
     printf("\n*                                               *");
     printf("\n*************************************************\n");
 }
-
-
-
