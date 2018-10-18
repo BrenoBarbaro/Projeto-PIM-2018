@@ -1,132 +1,312 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <locale.h>
+#include <string.h>
+#include <windows.h>
+#include <conio.h>
 
-typedef struct numero
+
+typedef struct produtos
 {
-    int valor;
-    struct Numero *proximo;
-} Numero;
+    char codProduto[5];
+    char nomeProduto[21];
+    double valoProduto;
+    struct Lista *proximo;
+} Lista;
 
-Numero *inicio = NULL;
+Lista *inicio = NULL;
 
-int imprimeMenu();
-void sair();
-void adicionar();
-void listar();
-void remover();
 
-int main()
+typedef struct compras
 {
-    int op;
+    char codProduto[5];
+    char nomeProduto[21];
+    double valorProduto;
+    struct ListaCompras *proximo;
+} ListaCompras;
+
+ListaCompras *cprodutos = NULL;
+
+void gotoxy(int x, int y){
+     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD){x-1,y-1});
+}
+
+void produtosVendidos();
+void saldoDia();
+void administrativeSystem();
+void ExibeProdutos();
+//void Exibe();
+void DesingCaixa();
+void menu();
+
+
+//-------------------------------------------------------------------------------
+
+int main(void)
+{
+
+    char sn;
+    int op,op1,op2,op3;
+    int cProduto,qtd;
+    int x=0;
 
     do
     {
-        system("CLS");
-        op = imprimeMenu();
+        menu();
+        gotoxy(15,10);scanf("%d",&op);
         switch(op)
         {
-            case 0: sair(); break;
-            case 1: adicionar(); break;
-            case 2: listar(); break;
-            case 3: remover(); break;
+            case 1: DesingCaixa(); break;
+
+            case 2: administrativeSystem(); break;
+
+            case 5: sair(); break;
+
+            default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
+
         }
-    }while(op!=0);
+    }while(op!=5);
 
     return 0;
 }
 
-int imprimeMenu()
+void menu()
 {
-    int op;
+    system("cls");
+    printf("******************************************************");
+    printf("\n*                 NewHorizon Market                  *");
+    printf("\n*                                                    *");
+    printf("\n*      1 - Sistema de Caixa                          *");
+    printf("\n*      2 - Sistema Administrativo                    *");
+    printf("\n*                                                    *");
+    printf("\n*      5 - Sair                                      *");
+    printf("\n*                                                    *");
+    printf("\n******************************************************");
+    printf("\n*      Opcao:                                        *");
+    printf("\n******************************************************");
+}
 
-    printf("\n*** MENU ***\n\n");
-    printf("0 - Sair");
-    printf("\n1 - Adicionar");
-    printf("\n2 - Listar");
-    printf("\n3 - Remover");
-    printf("\n\nEntre com a opcao desejada: ");
-    scanf("%d",&op);
+void DesingCaixa()
+{
+    int op1;
+    system("cls");
+    printf("******************************************************");
+    printf("\n*                Sistema de Mercado                  *");
+    printf("\n*                                                    *");
+    printf("\n*      1 - Iniciar Compras                           *");
+    printf("\n*      2 - Seus Produtos                             *");
+    printf("\n*                                                    *");
+    printf("\n*      5 - Sair                                      *");
+    printf("\n*                                                    *");
+    printf("\n******************************************************");
+    printf("\n*      Opcao:                                        *");
+    printf("\n******************************************************\n");
+    gotoxy(15,10);scanf("%d",&op1);
+    switch(op1)
+    {
+        case 1:
+                iniciaCompra();
+
+        break;
+        case 2:
+                ExibeProdutos();
+        break;
+    }
+}
+
+void iniciaCompra()
+{
+    Lista *adicionar = (Lista *) malloc(sizeof(Lista));
+    adicionar->proximo = NULL;
+    Lista *aux = inicio;
+    ListaCompras *aux2 = cprodutos;
+
+    system("CLS");
+    ExibeProdutos();
+    printf("\n\n(Digite o codigo do produto desejado)");
+    printf("\n\nCodigo: ");
+    scanf("%s", adicionar->codProduto);
     fflush(stdin);
-    return op;
+    /*while(aux!=NULL)
+    {
+        if(strcmp(adicionar->codProduto,aux->codProduto) == 0)
+        {
+            aux2=aux->codProduto;
+            aux2=aux->nomeProduto;
+            aux2=aux->valoProduto;
+        }
+    }*/
+
+    printf("\n\n%s\t%s\t%d",aux2->codProduto,aux2->nomeProduto,aux2->valorProduto);
+
+    system("PAUSE");
+
 }
 
-void sair()
+//-------------------------------------------------------------------------------
+
+void administrativeSystem()
 {
-    printf("\n\nBye...\n\n");
+    int op1;
+    system("CLS");
+    printf("*************************************************");
+    printf("\n*          Sistema de Administrativo            *");
+    printf("\n*                                               *");
+    printf("\n*   1 - Saldo de Vendas do Dia                  *");
+    printf("\n*   2 - Produtos Vendidos                       *");
+    printf("\n*   3 - Adicionar Produtos                      *");
+    printf("\n*   4 - Exibir Produtos                         *");
+    printf("\n*                                               *");
+    printf("\n*   5 - Sair                                    *");
+    printf("\n*                                               *");
+    printf("\n*************************************************");
+    printf("\n*   Opcao:                                      *");
+    printf("\n*************************************************\n");
+    gotoxy(12,12);scanf("%d",&op1);
+    switch(op1)
+    {
+        case 1: saldoDia(); break;
+
+        case 2: produtosVendidos(); break;
+
+        case 3: adicionarProdutos();    break;
+
+        case 4: ExibeProdutos(); system("PAUSE");   break;
+    }
 }
 
-void adicionar()
+void saldoDia()
 {
-    Numero *novo = (Numero *) malloc(sizeof(Numero));
+    system("CLS");
+    printf("*********************************************************************");
+    printf("\n*                        Saldos do Dia                              *");
+    printf("\n*                                                                   *");
+    printf("\n*   N. Venda:        Quantidade de Produtos:        Valor:          *");
+    printf("\n*                                                                   *");
+    printf("\n*        1                    85                    R$ 458.78       *");
+    printf("\n*        2                     7                    R$ 15.82        *");
+    printf("\n*        3                    15                    R$ 31.02        *");
+    printf("\n*        4                     5                    R$ 10.98        *");
+    printf("\n*        5                    19                    R$ 19.19        *");
+    printf("\n*        6                    45                    R$ 65.75        *");
+    printf("\n*        7                   126                    R$ 726.15       *");
+    printf("\n*        8                    72                    R$ 389.17       *");
+    printf("\n*        9                    23                    R$ 25.12        *");
+    printf("\n*        10                   31                    R$ 43.68        *");
+    printf("\n*        11                   14                    R$ 20.98        *");
+    printf("\n*                                                                   *");
+    printf("\n*********************************************************************\n");
+    system("PAUSE");
+}
+
+void produtosVendidos()
+{
+    system("CLS");
+    printf("*********************************************************************");
+    printf("\n*                       Produtos Vendidos                          *");
+    printf("\n*                                                                  *");
+    printf("\n*      Nome do Produtos:                        Quantidade:        *");
+    printf("\n*                                                                  *");
+    printf("\n*      1- Arroz                                                    *");
+    printf("\n*      2- Feijao                                 R$ 15.82          *");
+    printf("\n*      3- Macarrao                               R$ 31.02          *");
+    printf("\n*      4- Molho de Tomate                        R$ 10.98          *");
+    printf("\n*      5- Sorvete                                R$ 19.19          *");
+    printf("\n*      6- Bolacha                                R$ 65.75          *");
+    printf("\n*      7- Sabao em Po                            R$ 726.15         *");
+    printf("\n*      8- Pao frances                            R$ 389.17         *");
+    printf("\n*      9- batata                                 R$ 25.12          *");
+    printf("\n*     10- Abobrinha                              R$ 43.68          *");
+    printf("\n*     11- Tomate                                 R$ 20.98          *");
+    printf("\n*                                                                  *");
+    printf("\n********************************************************************\n");
+    system("PAUSE");
+}
+
+void adicionarProdutos()
+{
+    Lista *novo = (Lista *) malloc(sizeof(Lista));
     novo->proximo = NULL;
-    Numero *aux = inicio;
-    printf("\n\nEntre com novo numero: ");
-    scanf("%d",&novo->valor);
-    fflush(stdin);
-    if(inicio==NULL)
-    {
-        inicio= novo;
-    }
-    else
-    {
-        while(aux->proximo!=NULL)
+    Lista *aux;
+    aux = inicio;
+
+
+        system("CLS");
+        printf("*********************************************************************");
+        printf("\n*                                                                   *");
+        printf("\n*                       Adicionar Produtos                          *");
+        printf("\n*                                                                   *");
+        printf("\n*                                                                   *");
+        printf("\n*     Codigo do Produto:                                            *");
+        printf("\n*                                                                   *");
+        printf("\n*     Nome do Produto:                                              *");
+        printf("\n*                                                                   *");
+        printf("\n*     Valor do produto:                                             *");
+        printf("\n*                                                                   *");
+        printf("\n*                                                                   *");
+        printf("\n*                                                                   *");
+        printf("\n*                                                                   *");
+        printf("\n*********************************************************************\n");
+        fflush(stdin);
+        gotoxy(26,6);scanf("%4s", novo->codProduto);
+        fflush(stdin);
+        gotoxy(24,8);scanf("%20s", novo->nomeProduto);
+        gotoxy(25,10);printf("R$");
+        fflush(stdin);
+        gotoxy(28,10);scanf("%lf",&novo->valoProduto);
+        gotoxy(7,13);printf("Produto adicionado com sucesso!");
+        if(inicio == NULL)
         {
-            aux = aux->proximo;
-        }
-        aux->proximo = novo;
-    }
-}
-
-void listar()
-{
-    Numero *aux = inicio;
-
-    int c;
-
-    if(aux == NULL)
-    {
-        printf("\n---------------------------\n\n");
-        printf("\n\nA lista esta vazia.\n\n");
-        printf("\n---------------------------\n\n");
-        c = getchar();
-    }
-    if(aux != NULL)
-    {
-        printf("\n\tNumeros");
-        printf("\n---------------------------\n\n");
-        while(aux!=NULL)
-        {
-            printf("%d\n",aux->valor);
-            aux=aux->proximo;
-        }
-        printf("\n---------------------------\n\n");
-        c = getchar();
-    }
-}
-
-void remover()
-{
-    Numero *remove = inicio;
-    int c;
-    if(inicio == NULL)
-    {
-        printf("\n---------------------------\n\n");
-        printf("\n\nA lista esta vazia.\n\n");
-        printf("\n---------------------------\n\n");
-        c = getchar();
-    }
-    else
-    {
-        if(inicio->proximo ==  NULL)
-        {
-            inicio = NULL;
+            inicio = novo;
         }
         else
         {
-            inicio=inicio->proximo;
-            free(remove);
-            remove = NULL;
+            while(aux->proximo!=NULL)
+            {
+                aux = aux->proximo;
+            }
+            aux->proximo = novo;
         }
-        listar();
+}
+
+void ExibeProdutos()
+{
+    Lista *aux;
+    aux = inicio;
+
+    system("CLS");
+    if(aux!=NULL)
+    {
+        //                                    LINHAS
+        //printf("123456789111111111122222222223333333333444444444455555555556666666666");
+        //printf("         012345678901234567890123456789012345678901234567890123456789");
+        //
+        printf("*********************************************************************");
+        printf("\n                                                                     ");
+        printf("\n    Codigo:          Nome:                       Valor:              \n\n");
+        while(aux!=NULL)
+        {
+            printf("Cod. Produto: %s\n",aux->codProduto);
+            printf("Nome Produto: %s\n",aux->nomeProduto);
+            printf("Valor Produto: %2lf\n\n",aux->valoProduto);
+            aux = aux->proximo;
+        }
+        printf("\n                                                                     ");
+        printf("\n*********************************************************************\n\n");
     }
 }
+
+//-------------------------------------------------------------------------------
+
+void sair()
+{
+    system("CLS");
+    printf("*************************************************");
+    printf("\n*                                               *");
+    printf("\n*     Obrigado , NewHorizon Market agradece     *");
+    printf("\n*         sua presenca, volte sempre.           *");
+    printf("\n*                                               *");
+    printf("\n*************************************************\n");
+}
+
+
+
