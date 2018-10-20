@@ -129,35 +129,26 @@ void iniciaCompra()
         ExibeProdutos();
         printf("\n\n(Digite o codigo do produto desejado)");
         printf("\n\nCodigo: ");
-        scanf("%4s",&numProduto);
+        scanf("%4s",numProduto);
         fflush(stdin);
         while(aux != NULL)
         {
-            printf("\n\nl\n\n");
             if( (strcmp(aux->codProduto, numProduto)) == 0)
             {
-                printf("\n\n2\n\n");
                 if(cprodutos == NULL)
                 {
-                    printf("\n\n3\n\n");
                     cprodutos = aux;
-                    printf("\n\n4\n\n");
                 }
                 else
                 {
-                    printf("\n\n5\n\n");
                     while(aux2->proximo!=NULL)
                     {
-                        printf("\n\n6\n\n");
 
                         aux2=aux2->proximo;
-                        printf("\n\n7\n\n");
                     }
-                    printf("\n\n8\n\n");
                     aux2->proximo=aux;
                 }
                 printf("\n\n");
-                printf("\n\n9\n\n");
                 while(aux2!=NULL)
                 {
                     printf("%s\t%s\t%0.2f",aux2->codProduto,aux2->nomeProduto,aux2->valorProduto);
