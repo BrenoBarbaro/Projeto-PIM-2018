@@ -12,9 +12,6 @@ typedef struct produtos
     struct Lista *proximo;
 } Lista;
 
-Lista *inicio = NULL;
-
-
 typedef struct compras
 {
     char codProduto[5];
@@ -23,7 +20,16 @@ typedef struct compras
     struct ListaCompras *proximo;
 } ListaCompras;
 
+typedef struct usuarios
+{
+    char usuarioCadastrado[11];
+    char senhaCadastrado[11];
+    struct Login *proximo;
+}Login;
+
+Lista *inicio = NULL;
 ListaCompras *cprodutos = NULL;
+Login *ListaUsers = NULL;
 
 void gotoxy(int x, int y){
      SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD){x-1,y-1});
@@ -33,7 +39,6 @@ void produtosVendidos();
 void saldoDia();
 void administrativeSystem();
 void ExibeProdutos();
-//void Exibe();
 void DesingCaixa();
 void menu();
 
@@ -42,7 +47,7 @@ void menu();
 
 int main(void)
 {
-
+    
     char sn;
     int op,op1,op2,op3;
     int cProduto,qtd;
@@ -50,19 +55,21 @@ int main(void)
 
     do
     {
-        menu();
-        gotoxy(15,10);scanf("%d",&op);
-        switch(op)
-        {
-            case 1: DesingCaixa(); break;
+        
 
-            case 2: administrativeSystem(); break;
+            menu();
+            gotoxy(15,10);scanf("%d",&op);
+            switch(op)
+            {
+                case 1: DesingCaixa(); break;
 
-            case 5: sair(); break;
+                case 2: administrativeSystem(); break;
 
-            default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
+                case 5: sair(); break;
 
-        }
+                default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
+
+            }
     }while(op!=5);
 
     return 0;
@@ -315,6 +322,105 @@ void ExibeProdutos()
         }
         printf("\n                                                                     ");
         printf("\n***********************************************************************\n\n");
+    }
+}
+
+void cadastroUsuario()
+{
+    FILE *pUser;
+
+    Login *novo = (Login*) malloc(sizeof(Login));
+    Login *aux = ListaUsers;
+
+    printf("---> Cadastro de Usuario <---\n\n");
+    printf("Login: ");
+    fflush(stdin);
+    fgets(novo->usuarioCadastrado,sizeof(novo->usuarioCadastrado),stdin);
+    novo->usuarioCadastrado[strcspn(novo->usuarioCadastrado,"\r\n")] = '\0';
+    printf("Senha: ");
+    fflush(stdin);
+    fgets(novo->senhaCadastrado,sizeof(novo->senhaCadastrado),stdin);
+    novo->senhaCadastrado[strcspn(novo->senhaCadastrado,"\r\n")] = '\0';
+    fflush(stdin);
+    if(ListaUsers==NULL)
+    {
+        ListaUsers=novo;
+        pUser = fopen("Usuarios.txt","w");
+        fprintf(pUser,"%s%s",ListaUsers->usuarioCadastrado,ListaUsers->senhaCadastrado);
+        fclose(pUser);
+    }
+    else
+    {
+        pUser = fopen("Usuarios.txt","a");
+        fprintf(pUser,"%s",ListaUsers->senhaCadastrado);
+        fprintf(pUser,"%s",ListaUsers->usuarioCadastrado);
+        fclose(pUser);
+    }
+}
+
+int MostraLogin()
+{
+    Login *aux=ListaUsers;
+    Login *lLogin = (Login*) malloc(sizeof(Login));
+    lLogin->proximo = NULL;
+
+    FILE *log;
+    FILE *log2;
+    log = fopen("Log.txt","w");
+    fclose(log);
+
+    char usuario[11];
+    char senha[11];
+
+    if(ListaUsers==NULL)
+    {
+        log =fopen("Log.txt","a");
+        fprintf(log,"Usuarios nao cadastrados\n");
+        fclose(log);
+        return 1;
+    }
+    else if(ListaUsers!=NULL)
+    {
+        log = fopen("Log.txt","r");
+        fscanf(log,"%s",ListaUsers->usuarioCadastrado);
+        fscanf(log,"%s",ListaUsers->senhaCadastrado);
+        fclose(log);
+
+        Login *aux = ListaUsers;
+        printf("---> Tela Inicial <---\n\n");
+        printf("Login: ");
+        fflush(stdin);
+        fgets(usuario,sizeof(usuario),stdin);
+        usuario[strcspn(usuario,"\r\n")] = '\0';
+        fflush(stdin);
+        if(strcmp(usuario,aux->usuarioCadastrado),stdin)
+        {
+            printf("1");
+            printf("\nSenha:");
+            fgets(senha,sizeof(senha),stdin);
+            senha[strcspn(senha,"\r\n")] = '\0';
+            if(strcmp(senha,aux->senhaCadastrado),stdin)
+            {
+                menu();
+            }
+        }
+        else
+        {
+            printf("\n\Fail");
+            if(log == NULL)
+            {
+                log2 = fopen("UserInvalido.txt","w");
+                fputs(usuario,log2);
+                fclose(log2);
+            }
+            else
+            {
+                log = fopen("UserInvalido.txt","a");
+                fputs(usuario,log);
+                fclose(log);
+            }
+            system("PAUSE");
+        }
     }
 }
 
