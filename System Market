@@ -47,30 +47,19 @@ void menu();
 
 int main(void)
 {
-    
-    char sn;
-    int op,op1,op2,op3;
-    int cProduto,qtd;
-    int x=0;
+    FILE *inic;
+    inic = fopen("Usuarios.txt","r");
 
-    do
+    if(inic == NULL)
     {
-        
-
-            menu();
-            gotoxy(15,10);scanf("%d",&op);
-            switch(op)
-            {
-                case 1: DesingCaixa(); break;
-
-                case 2: administrativeSystem(); break;
-
-                case 5: sair(); break;
-
-                default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
-
-            }
-    }while(op!=5);
+        inic = fopen("Usuarios.txt","w");
+        cadastroUsuario();
+    }
+    else if(inic != NULL)
+    {
+        MostraLogin();  // --> Funções seguintes em MostraLogin
+    }
+    fclose(inic);
 
     return 0;
 }
@@ -332,6 +321,8 @@ void cadastroUsuario()
     Login *novo = (Login*) malloc(sizeof(Login));
     Login *aux = ListaUsers;
 
+    int op;
+
     printf("---> Cadastro de Usuario <---\n\n");
     printf("Login: ");
     fflush(stdin);
@@ -348,6 +339,22 @@ void cadastroUsuario()
         pUser = fopen("Usuarios.txt","w");
         fprintf(pUser,"%s%s",ListaUsers->usuarioCadastrado,ListaUsers->senhaCadastrado);
         fclose(pUser);
+
+        do
+        {
+            menu();
+            gotoxy(15,10);scanf("%d",&op);
+            switch(op)
+            {
+                case 1: DesingCaixa(); break;
+
+                case 2: administrativeSystem(); break;
+
+                case 5: sair(); break;
+
+                default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
+            }
+        }while(op!=5);
     }
     else
     {
@@ -355,6 +362,22 @@ void cadastroUsuario()
         fprintf(pUser,"%s",ListaUsers->senhaCadastrado);
         fprintf(pUser,"%s",ListaUsers->usuarioCadastrado);
         fclose(pUser);
+
+        do
+        {
+            menu();
+            gotoxy(15,10);scanf("%d",&op);
+            switch(op)
+            {
+                case 1: DesingCaixa(); break;
+
+                case 2: administrativeSystem(); break;
+
+                case 5: sair(); break;
+
+                default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
+            }
+        }while(op!=5);
     }
 }
 
@@ -371,6 +394,7 @@ int MostraLogin()
 
     char usuario[11];
     char senha[11];
+    int op;
 
     if(ListaUsers==NULL)
     {
@@ -401,7 +425,21 @@ int MostraLogin()
             senha[strcspn(senha,"\r\n")] = '\0';
             if(strcmp(senha,aux->senhaCadastrado),stdin)
             {
-                menu();
+                do
+                {
+                    menu();
+                    gotoxy(15,10);scanf("%d",&op);
+                    switch(op)
+                    {
+                        case 1: DesingCaixa(); break;
+
+                        case 2: administrativeSystem(); break;
+
+                        case 5: sair(); break;
+
+                        default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
+                    }
+                }while(op!=5);
             }
         }
         else
