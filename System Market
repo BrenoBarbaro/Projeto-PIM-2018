@@ -55,10 +55,13 @@ int main(void)
         inic = fopen("Usuarios.txt","w");
         cadastroUsuario();
     }
-    else if(inic != NULL)
+    else
     {
+        printf("1");
         MostraLogin();  // --> Funções seguintes em MostraLogin
+        printf("2");
     }
+    free(inic);
     fclose(inic);
 
     return 0;
@@ -335,6 +338,7 @@ void cadastroUsuario()
     fflush(stdin);
     if(ListaUsers==NULL)
     {
+        printf("\ncadastroUsuario ListaUser == null\n");
         ListaUsers=novo;
         pUser = fopen("Usuarios.txt","w");
         fprintf(pUser,"%s%s",ListaUsers->usuarioCadastrado,ListaUsers->senhaCadastrado);
@@ -355,9 +359,12 @@ void cadastroUsuario()
                 default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
             }
         }while(op!=5);
+        free(novo);
+        free(aux);
     }
     else
     {
+         printf("\ncadastroUsuario ListaUser != null\n");
         pUser = fopen("Usuarios.txt","a");
         fprintf(pUser,"%s",ListaUsers->senhaCadastrado);
         fprintf(pUser,"%s",ListaUsers->usuarioCadastrado);
@@ -378,11 +385,14 @@ void cadastroUsuario()
                 default:    printf("\n\nOpcao invalida!\t\t");  system("PAUSE");    break;
             }
         }while(op!=5);
+        free(novo);
+        free(aux);
     }
 }
 
 int MostraLogin()
 {
+    printf("\nmostra login\n");
     Login *aux=ListaUsers;
     Login *lLogin = (Login*) malloc(sizeof(Login));
     lLogin->proximo = NULL;
@@ -395,22 +405,25 @@ int MostraLogin()
     char usuario[11];
     char senha[11];
     int op;
-
+/*
     if(ListaUsers==NULL)
     {
+        printf("\n listaUsers == null\n");
         log =fopen("Log.txt","a");
         fprintf(log,"Usuarios nao cadastrados\n");
         fclose(log);
         return 1;
     }
-    else if(ListaUsers!=NULL)
+    else
     {
+
+        printf("\n listaUsers != null\n");
         log = fopen("Log.txt","r");
         fscanf(log,"%s",ListaUsers->usuarioCadastrado);
         fscanf(log,"%s",ListaUsers->senhaCadastrado);
         fclose(log);
 
-        Login *aux = ListaUsers;
+        Login *aux = ListaUsers;    */
         printf("---> Tela Inicial <---\n\n");
         printf("Login: ");
         fflush(stdin);
@@ -441,7 +454,7 @@ int MostraLogin()
                     }
                 }while(op!=5);
             }
-        }
+      //  }
         else
         {
             printf("\n\Fail");
