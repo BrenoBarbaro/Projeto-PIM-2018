@@ -165,40 +165,56 @@ void iniciaCompra()
 	ListaCliente *cAux = cliente;
 	
 	char codigo[5],c;
-	do{
-		ExibeProdutos();
-		printf("Codigo: ");
-		scanf("%4s",&codigo);
-		if(cliente == NULL)
-		{
-			while(aux->proximo!=NULL)
+	
+	if(inicio == NULL)
+	{
+		printf("Nao ha produtos cadastrados!\t(Press enter to continue)");
+		getch();
+		menu();
+	}else{
+		do{
+			ExibeProdutos();
+			printf("Codigo: ");
+			scanf("%4s",codigo);
+			if(cliente == NULL)
 			{
-				if((strcmp(codigo, aux->codProduto))==0)
+				printf("1");
+				while(aux!=NULL)
 				{
-					strcpy(cliente->codProduto, aux->codProduto);
-					strcpy(cliente->nomeProduto, aux->nomeProduto);
-					cliente->valorProduto = aux->valorProduto;
-				}else{
-					printf("\n\nProduto nao encontrado\n\n");
+					printf("2");
+					if((strcmp(codigo, aux->codProduto))==0)
+					{
+						printf("3");
+						cliente = aux;
+						printf("%s  %s  %0.2lf  ",cliente->codProduto,cliente->nomeProduto,cliente->valorProduto);
+						printf("4");
+					}else{
+						printf("5");
+						printf("\n\nProduto nao encontrado\n\n");
+						printf("6");
+					}
+					printf("7");
+					aux = aux->proximo;
+					printf("8");
 				}
-				aux = aux->proximo;
-			}
-		}else{
-			while(aux->proximo!=NULL)
-			{
-				if((strcmp(codigo,aux->codProduto))==0)
+				printf("9");
+			}else{
+				while(aux!=NULL)
 				{
-					strcpy(cAux->codProduto, aux->codProduto);
-					strcpy(cAux->nomeProduto, aux->nomeProduto);
-					cAux->valorProduto = aux->valorProduto;
+					if((strcmp(codigo,aux->codProduto))==0)
+					{
+						strcpy(cAux->codProduto, aux->codProduto);
+						strcpy(cAux->nomeProduto, aux->nomeProduto);
+						cAux->valorProduto = aux->valorProduto;
+					}
 				}
 			}
-		}
-		
-		printf("\n\ncod: %s\nnome: %s\nvalor: %0.2lf",cAux->codProduto,cAux->nomeProduto,cAux->valorProduto);
-		printf("\n\nAdicionar mais produtos? (s/n)");
-		c = getch();
-	}while((c != 's') || (c != 'S'));
+			
+			printf("\n\ncod: %s\nnome: %s\nvalor: %0.2lf",cAux->codProduto,cAux->nomeProduto,cAux->valorProduto);
+			printf("\n\nAdicionar mais produtos? (s/n)");
+			c = getch();
+		}while((c != 's') || (c != 'S'));
+	}
 }
 
 // ----------------- Menu Administrativo -----------------
