@@ -10,7 +10,7 @@ void gotoxy(int x, int y){
 
 typedef struct Produtos
 {
-	int codProduto[5];
+	char codProduto[5];
 	char nomeProduto[12];
 	double valorProduto;
 	int quantidade;
@@ -22,10 +22,11 @@ typedef struct ListaCliente
 	char codProduto[5];
 	char nomeProduto[12];
 	double valorProduto;
+	int quantidade;
 	struct ListaCliente *proximo;
 } ListaCliente;
 
-typedef struct usuarios
+typedef struct Login
 {
 	char nomeUsuario[30];
     char dataNascimento[11];
@@ -37,13 +38,15 @@ typedef struct usuarios
 }Login;
 
 Produtos *inicio = NULL;
-ListaCliente *cliente = NULL;
+ListaCliente *inicioList = NULL;
+ListaCliente *carrinhoCliente = NULL;
 Login *ListaUsers = NULL;
 
 void menu();
 void DesingCaixa();
 void iniciaCompra();
 void ExibeProdutos();
+void carinhaCliente();
 void administrativeSystem();
 void saldoDia();
 void produtosVendidos();
@@ -146,44 +149,109 @@ void DesingCaixa()
 
 void ExibeProdutos()
 {
-    Produtos inicio;
-	FILE *fp;
+    ListaCliente *aux = inicioList;
+	int y=5;
 	
-    system("CLS");
-    if((fp = fopen("Produtos.dat","rb"))==NULL)
+	if(aux == NULL)
 	{
-		printf("Problema na abertura do arquivo!\n");
+		printf("Nao ha produtos cadastrados.");
 	}else{
-        int y=5;
-        printf("***********************************************************************\n");
-        printf("                                                                       \n");
-        printf("    Codigo:              Nome:                       Valor:            \n");
-        printf("                                                                       \n");
-	    if(fp == NULL)
+	    printf("***************************************************************************\n");
+	    printf("                                                                           \n");
+	    printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	    printf("                                                                           \n");
+	    while(aux!=NULL)
 		{
-			printf("\nErro na abertura do arquivo.\n\n");
-			exit(1);
-		}else{
-		    while(fread(&inicio,sizeof(Produtos),1,fp)==1)
-	        {
-	            gotoxy(5,y);printf("%s",inicio.codProduto);
-	            gotoxy(26,y);printf("%s",inicio.nomeProduto);
-	            gotoxy(54,y);printf("%0.2lf",inicio.valorProduto);
-	            y++;
-	        }
+			gotoxy(5,y);printf("%s",aux->codProduto);
+			gotoxy(20,y);printf("%s",aux->nomeProduto);
+			gotoxy(41,y);printf("%d",aux->quantidade);
+			gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
+			y++;
+			aux = aux->proximo;
 		}
-        printf("\n                                                                     ");
-        printf("\n***********************************************************************\n\n");
-        printf("(Press enter to continue)");
-        fclose(fp);
-	}
+	    printf("                                                                           \n");
+	    printf("\n*************************************************************************\n\n");
+	    carinhaCliente();
+    }
 }
 
 void iniciaCompra()
 {
-	ExibeProdutos();
+	Produtos *aux = inicio;
+	ListaCliente *tempCliente = (ListaCliente*) malloc(sizeof(ListaCliente));
+	tempCliente->proximo=NULL;
+	char codigo[5],c;
+	int qtd;
 	
-	
+	system("CLS");
+	while(aux!=NULL)
+	{
+		strcpy(tempCliente->codProduto,aux->codProduto);
+		strcpy(tempCliente->nomeProduto,aux->nomeProduto);
+		tempCliente->quantidade = aux->quantidade;
+		tempCliente->valorProduto=aux->valorProduto;
+		aux=aux->proximo;
+		tempCliente->proximo = inicioList;
+		inicioList = tempCliente;
+	}
+	ListaCliente *auxList = inicioList;
+	do{
+		system("CLS");
+		ExibeProdutos();
+		
+		printf("Codigo: ");
+		fflush(stdin); gets(codigo);
+		
+		codigo[strcspn(codigo,"\r\n")] = '\0';
+			
+		while(auxList!=NULL)
+		{
+			if(strcmp(codigo,auxList->codProduto)==0)
+			{
+				TOP:
+				printf("\nQuantidade: ");
+				fflush(stdin);
+				scanf("%d",&qtd);
+				fflush(stdin);
+				if((auxList->quantidade<0) || (auxList->quantidade>aux->quantidade))
+		   	    {
+					printf("\t\tNao ha em estoque esta quantidade, tente outra quantidade.");
+					goto TOP;
+				}else{
+					strcpy(carrinhoCliente->codProduto,auxList->codProduto);
+					strcpy(carrinhoCliente->nomeProduto,auxList->nomeProduto);
+					carrinhoCliente->quantidade = qtd;
+					auxList->quantidade = auxList->quantidade - qtd;
+					carrinhoCliente->valorProduto = auxList->valorProduto * qtd;
+				}
+			}
+		}
+		printf("\t\tAdicionar mais produtos? (s/n)");
+		c = getch();  
+	}while((c != 'n') || (c != 'N'));	
+}	
+
+void carinhaCliente()
+{
+	ListaCliente *cCliente = carrinhoCliente;
+	int y=3;
+	gotoxy(75,1);printf("********************************************************\n");
+	gotoxy(75,2);printf("*                       Carrinho                       *\n");
+	while(cCliente!=NULL)
+	{
+		gotoxy(78,y);printf("%s",cCliente->codProduto);
+		gotoxy(87,y);printf("%s",cCliente->nomeProduto);
+		gotoxy(107,y);printf("%d",cCliente->quantidade);
+		gotoxy(119,y);printf("R$%0.2lf",cCliente->valorProduto);
+		cCliente=cCliente->proximo;
+		y++;
+	}
+	printf("\n\n*                                                      *\n");
+	gotoxy(75,y++);printf("********************************************************\n");
+	gotoxy(75,y++);printf("*                              1 - Dinheiro            *\n");
+	gotoxy(75,y++);printf("*   Total: 1099,00             2 - Cartao de Debito    *\n");
+	gotoxy(75,y++);printf("*                              3 - Cartao de Credito   *\n");
+	gotoxy(75,y++);printf("********************************************************\n\n");
 }
 
 // ----------------- Menu Administrativo -----------------
@@ -302,7 +370,7 @@ void adicionarProdutos()
     printf("\n*                                                                   *");
  	printf("\n*********************************************************************\n");
     fflush(stdin);
-    gotoxy(26,6);scanf("%d",&novo->codProduto);
+    gotoxy(26,6);gets(novo->codProduto);
     fflush(stdin);
     gotoxy(24,8);gets(novo->nomeProduto);
     gotoxy(30,10);printf("R$");
@@ -311,9 +379,8 @@ void adicionarProdutos()
     fflush(stdin);
     gotoxy(19,12);scanf("%d",&novo->quantidade);
     fflush(stdin);
-    
+    novo->proximo = inicio;
     inicio = novo;
-    novo = novo->proximo;
     gotoxy(7,15);printf("Produto adicionado com sucesso!");
         
   	printf("\n\n\n\n(Press enter to continue)");
@@ -324,36 +391,29 @@ void adicionarProdutos()
 void ExibeProdutosAdmin()
 {	
 	Produtos *aux = inicio;
-	//aux->proximo = NULL;
 	int y=5;
 	
-	if(aux == NULL)
+	if(aux==NULL)
 	{
 		printf("Nao ha produtos cadastrados.");
-	}else{
-		int temp;
-		/*while(aux!=NULL)
-		{
-			if()
-		}*/
-	    system("CLS");
-	    printf("***********************************************************************\n");
-	    printf("                                                                       \n");
-	    printf("    Codigo:        Nome:                Quantidade:           Valor:   \n");
-	    printf("                                                                       \n");
-	    while(aux!=NULL)
-		{
-			gotoxy(5,y);printf("%d",aux->codProduto);
-			gotoxy(20,y);printf("%s",aux->nomeProduto);
-			gotoxy(41,y);printf("%d",aux->quantidade);
-			gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
-			y++;
-			aux = aux->proximo;
-		}
-	    printf("                                                                       \n");
-	    printf("\n***********************************************************************\n\n");
-	    printf("(Press enter to continue)");
-    }
+	}
+    system("CLS");
+	printf("***********************************************************************\n");
+    printf("                                                                       \n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor:   \n");
+	printf("                                                                       \n");
+	while(aux!=NULL)
+	{
+		gotoxy(5,y);printf("%s",aux->codProduto);
+		gotoxy(20,y);printf("%s",aux->nomeProduto);
+		gotoxy(41,y);printf("%d",aux->quantidade);
+		gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
+		y++;
+		aux=aux->proximo;
+	}
+    printf("                                                                       \n");
+    printf("\n***********************************************************************\n\n");
+    printf("(Press enter to continue)");
 }
 
 // ------------------- Funcionarios -------------------
@@ -790,52 +850,32 @@ void listarFuncionarios()
 // ------------------- Utilizades -------------------
 void lerParaStruct()
 {
-	Produtos *aux;
+	Produtos aux;
 	FILE *fp;
-	fp = fopen("Produtos.dat","rb");
-	if(fp == NULL)
+	
+	if((fp = fopen("Produtos.dat","rb"))==NULL)
 	{
-		while(!feof(fp)){
-			if((fread(&aux,sizeof(Produtos),1,fp))==1){
-				Produtos *temp = (Produtos*) malloc(sizeof(Produtos));
-				strcpy(temp->codProduto,aux->codProduto);
-				strcpy(temp->nomeProduto,aux->nomeProduto);
-				temp->valorProduto = aux->valorProduto;
-				temp->proximo = inicio;
-				inicio = temp;
-			}
-		}
-	}else{
-		while(!feof(fp)){
-			if((fread(&aux,sizeof(Produtos),1,fp))==1){
-				Produtos *temp = (Produtos*) malloc(sizeof(Produtos));
-				strcpy(temp->codProduto,aux->codProduto);
-				strcpy(temp->nomeProduto,aux->nomeProduto);
-				temp->valorProduto = aux->valorProduto;
-				temp->proximo = inicio;
-				inicio = temp;
-			}
-		}
+		printf("\n\nErro na abertura do arquivo.");
+	}
+	while(fread(&aux,sizeof(Produtos),1,fp)==1)
+	{
+		Produtos *temp = (Produtos *) malloc(sizeof(Produtos));
+		strcpy(temp->codProduto,aux.codProduto);
+		strcpy(temp->nomeProduto,aux.nomeProduto);
+		temp->valorProduto = aux.valorProduto;
+		temp->quantidade = aux.quantidade;
+		temp->proximo = inicio;
+		inicio = temp;
 	}
 	fclose(fp);
-	
-	Produtos *no = inicio;
-	while(no!=NULL)
-	{
-		printf("\n\nCod: %s",no->codProduto);
-		printf("\nNome: %s",no->nomeProduto);
-		printf("\nValor: %0.2lf", no->valorProduto);
-		no = no->proximo;
-	}
-	getch();
 }
 
 void gravarArquivo()
 {
-	FILE *fp;
 	Produtos *aux;
+	FILE *fp;
 	
-	if((fp = fopen("Produtos.txt","a"))==NULL)
+	if((fp = fopen("Produtos.dat","ab"))==NULL)
 	{
 		printf("Erro na abertura do arquivo.");
 		exit(1);
