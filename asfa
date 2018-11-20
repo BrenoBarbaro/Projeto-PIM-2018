@@ -1,0 +1,909 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+#include <windows.h>
+
+void gotoxy(int x, int y){
+     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD){x-1,y-1});
+}
+
+typedef struct Produtos
+{
+	char codProduto[5];
+	char nomeProduto[12];
+	double valorProduto;
+	int quantidade;
+	struct Produtos *proximo;
+} Produtos;
+
+typedef struct ListaCliente
+{
+	char codProduto[5];
+	char nomeProduto[12];
+	double valorProduto;
+	int quantidade;
+	struct ListaCliente *proximo;
+} ListaCliente;
+
+typedef struct Login
+{
+	char nomeUsuario[30];
+    char dataNascimento[11];
+    char telefone[12];
+    char email[30];
+	char usuarioCadastrado[12];
+	char senhaCadastrada[8];
+	struct Login *proximo;
+}Login;
+
+Produtos *inicio = NULL;
+ListaCliente *inicioList = NULL;
+ListaCliente *carrinhoCliente = NULL;
+Login *ListaUsers = NULL;
+
+void menu();
+void DesingCaixa();
+void iniciaCompra();
+void ExibeProdutos();
+void carinhaCliente();
+void administrativeSystem();
+void saldoDia();
+void produtosVendidos();
+void adicionarProdutos();
+void ExibeProdutosAdmin();
+void menuFuncionario();
+void cadastraUsuario();
+void MostraLogin();
+void telaLogin();
+void autorizaLogin();
+void autorizaCaixa();
+void autorizaAdministrativo();
+void autorizaSeguranca();
+void PesquisaFuncionario();
+void listarFuncionarios();
+void lerParaStruct();
+void gravarArquivo();
+void sair();
+void retornar();
+
+int main()
+{
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		cadastraUsuario();
+	}else{
+		telaLogin();
+	}
+	fclose(fp);
+
+	return 0;
+}
+
+
+// ----------------------- Menu -----------------------
+
+void menu()
+{
+	char c;
+
+	do{
+	    system("cls");
+	    printf("**********************************************************");
+	    printf("\n*                    NewHorizon Market                   *");
+	    printf("\n*                                                        *");
+	    printf("\n*      1 - Sistema de Caixa                              *");
+	    printf("\n*      2 - Sistema Administrativo                        *");
+	    printf("\n*      3 - Sistema de Seguranca                          *");
+	    printf("\n*                                                        *");
+	    printf("\n*      5 - Sair                                          *");
+	    printf("\n*                                                        *");
+	    printf("\n**********************************************************");
+	    printf("\n*      Opcao:                                            *");
+	    printf("\n**********************************************************");
+	    gotoxy(15,11); c = getch();
+	    switch(c)
+		{
+			case '1': autorizaCaixa(); break;
+
+			case '2': autorizaAdministrativo(); break;
+
+			case '3': autorizaSeguranca(); break;
+
+			case '5': sair(); break;
+
+			default: gotoxy(15,10); printf("Opcao Invalida.  (Press enter to continue)"); getch(); break;
+		}
+	}while(c != '5');
+}
+
+// --------------------- Menu Caixa --------------------
+
+void DesingCaixa()
+{
+    char op1;
+    system("cls");
+    printf("******************************************************");
+    printf("\n*                Sistema de Mercado                  *");
+    printf("\n*                                                    *");
+    printf("\n*      1 - Iniciar Compras                           *");
+    printf("\n*                                                    *");
+    printf("\n*                                                    *");
+    printf("\n*      5 - Sair                                      *");
+    printf("\n*                                                    *");
+    printf("\n******************************************************");
+    printf("\n*      Opcao:                                        *");
+    printf("\n******************************************************\n");
+    op1 = getch();
+    switch(op1)
+    {
+        case '1': iniciaCompra(); break;
+
+        case '5': retornar(); break;
+
+        default: printf("\n\nTecla invalida!\n"); break;
+    }
+}
+
+void ExibeProdutos()
+{
+    ListaCliente *aux = inicioList;
+	int y=5;
+
+	if(aux == NULL)
+	{
+		printf("Nao ha produtos cadastrados.");
+	}else{
+	    printf("***************************************************************************\n");
+	    printf("                                                                           \n");
+	    printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	    printf("                                                                           \n");
+	    while(aux!=NULL)
+		{
+			gotoxy(5,y);printf("%s",aux->codProduto);
+			gotoxy(20,y);printf("%s",aux->nomeProduto);
+			gotoxy(41,y);printf("%d",aux->quantidade);
+			gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
+			y++;
+			aux = aux->proximo;
+		}
+		
+	    printf("                                                                           \n");
+	    printf("\n*************************************************************************\n\n");
+	}
+}
+
+void iniciaCompra()
+{
+	Produtos *itemLoja = (Produtos*) malloc(sizeof(Produtos));
+	itemLoja->proximo = NULL;	
+}
+
+void carinhaCliente()
+{
+	ListaCliente *cCliente = carrinhoCliente;
+	int y=3;
+	printf("\n\n********************************************************\n");
+	printf("*                       Carrinho                       *\n");
+	while(cCliente!=NULL)
+	{
+		//gotoxy(78,y);
+		printf("%s",cCliente->codProduto);
+		//gotoxy(87,y);
+		printf("%s",cCliente->nomeProduto);
+		//gotoxy(107,y);
+		printf("%d",cCliente->quantidade);
+		//gotoxy(119,y);
+		printf("R$%0.2lf",cCliente->valorProduto);
+		cCliente=cCliente->proximo;
+		y++;
+	}
+	printf("\n\n*                                                      *\n");
+	printf("********************************************************\n");
+	printf("*                              1 - Dinheiro            *\n");
+	printf("*   Total: 1099,00             2 - Cartao de Debito    *\n");
+	printf("*                              3 - Cartao de Credito   *\n");
+	printf("********************************************************\n\n");
+}
+
+// ----------------- Menu Administrativo -----------------
+
+void administrativeSystem()
+{
+    char op2;
+    do{
+	    system("CLS");
+	    printf("**********************************************************");
+	    printf("\n*               Sistema de Administrativo                *");
+	    printf("\n*                                                        *");
+	    printf("\n*   1 - Saldo de Vendas do Dia                           *");
+	    printf("\n*   2 - Produtos Vendidos                                *");
+	    printf("\n*   3 - Adicionar Produtos                               *");
+	    printf("\n*   4 - Exibir Produtos                                  *");
+	    printf("\n*   5 - Iniciar Produtos                                 *");
+	    printf("\n*   6 - Gravar Produtos                                  *");
+	    printf("\n*                                                        *");
+		printf("\n*                                                        *");
+	    printf("\n*   9 - Sair                                             *");
+	    printf("\n*                                                        *");
+	    printf("\n**********************************************************");
+	    printf("\n*   Opcao:                                               *");
+	    printf("\n**********************************************************");
+	    gotoxy(12,15); op2 = getch();
+	    switch(op2)
+	    {
+	        case '1': saldoDia(); break;
+
+	        case '2': produtosVendidos(); break;
+
+	        case '3': adicionarProdutos();    break;
+
+	        case '4': ExibeProdutosAdmin();  getch(); break;
+
+	        case '5': lerParaStruct();	break;
+
+	        case '6': gravarArquivo();	break;
+
+	        case '9': retornar(); break;
+
+	        default: printf("\n\nOpcao invalida.  (Press enter to continue)"); getch(); break;
+	    }
+	}while(op2 != '5');
+}
+
+void saldoDia()
+{
+    system("CLS");
+    printf("*********************************************************************");
+    printf("\n*                        Saldos do Dia                              *");
+    printf("\n*                                                                   *");
+    printf("\n*   N. Venda:        Quantidade de Produtos:        Valor:          *");
+    printf("\n*                                                                   *");
+    printf("\n*        1                    85                    R$ 458.78       *");
+    printf("\n*        2                     7                    R$ 15.82        *");
+    printf("\n*        3                    15                    R$ 31.02        *");
+    printf("\n*        4                     5                    R$ 10.98        *");
+    printf("\n*        5                    19                    R$ 19.19        *");
+    printf("\n*        6                    45                    R$ 65.75        *");
+    printf("\n*        7                   126                    R$ 726.15       *");
+    printf("\n*        8                    72                    R$ 389.17       *");
+    printf("\n*        9                    23                    R$ 25.12        *");
+    printf("\n*        10                   31                    R$ 43.68        *");
+    printf("\n*        11                   14                    R$ 20.98        *");
+    printf("\n*                                                                   *");
+    printf("\n*********************************************************************\n");
+    system("PAUSE");
+}
+
+void produtosVendidos()
+{
+    system("CLS");
+    printf("*********************************************************************");
+    printf("\n*                       Produtos Vendidos                          *");
+    printf("\n*                                                                  *");
+    printf("\n*      Nome do Produtos:                        Quantidade:        *");
+    printf("\n*                                                                  *");
+    printf("\n*      1- Arroz                                                    *");
+    printf("\n*      2- Feijao                                 R$ 15.82          *");
+    printf("\n*      3- Macarrao                               R$ 31.02          *");
+    printf("\n*      4- Molho de Tomate                        R$ 10.98          *");
+    printf("\n*      5- Sorvete                                R$ 19.19          *");
+    printf("\n*      6- Bolacha                                R$ 65.75          *");
+    printf("\n*      7- Sabao em Po                            R$ 726.15         *");
+    printf("\n*      8- Pao frances                            R$ 389.17         *");
+    printf("\n*      9- batata                                 R$ 25.12          *");
+    printf("\n*     10- Abobrinha                              R$ 43.68          *");
+    printf("\n*     11- Tomate                                 R$ 20.98          *");
+    printf("\n*                                                                  *");
+    printf("\n********************************************************************\n");
+    system("PAUSE");
+}
+
+void adicionarProdutos()
+{
+    Produtos *novo = (Produtos*)malloc(sizeof(Produtos));
+    novo->proximo = NULL;
+    char c;
+	
+	do{
+	system("CLS");
+	printf("*********************************************************************");
+	printf("\n*                                                                   *");
+	printf("\n*                       Adicionar Produtos                          *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*     Codigo do Produto:                                            *");
+	printf("\n*                                                                   *");
+	printf("\n*     Nome do Produto:                                              *");
+	printf("\n*                                                                   *");
+	printf("\n*     Valor do produto(Kg):                                         *");
+	printf("\n*                                                                   *");
+	printf("\n*     Quantidade:                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*********************************************************************\n");
+	fflush(stdin);
+	gotoxy(26,6);gets(novo->codProduto);
+	fflush(stdin);
+	gotoxy(24,8);gets(novo->nomeProduto);
+	gotoxy(30,10);printf("R$");
+	fflush(stdin);
+	gotoxy(33,10);scanf("%lf",&novo->valorProduto);
+	fflush(stdin);
+	gotoxy(19,12);scanf("%d",&novo->quantidade);
+	fflush(stdin);
+	
+	if(inicio == NULL){
+            inicio = novo;
+        }else{
+            Produtos *pAux = inicio;
+            while(pAux->proximo != NULL){
+                pAux = pAux->proximo;
+            }
+            pAux->proximo = novo;
+        }
+	gotoxy(7,15);printf("Produto adicionado com sucesso!\tS/N");
+	
+	c = getch();
+	}while((c == 's') || (c =='S'));
+}
+
+void ExibeProdutosAdmin()
+{
+	Produtos *aux = inicio;
+	int y=5;
+
+	if(aux==NULL)
+	{
+		printf("Nao ha produtos cadastrados.");
+	}
+    system("CLS");
+	printf("***********************************************************************\n");
+    printf("                                                                       \n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor:   \n");
+	printf("                                                                       \n");
+	while(aux!=NULL)
+	{		
+		char cod[5];
+		char nom[15];
+		int qq;
+		double val;
+		strcpy(cod,aux->codProduto);
+		strcpy(nom,aux->nomeProduto);
+		qq = aux->quantidade;
+		val = aux->valorProduto;
+		gotoxy(5,y);printf("%s",cod);
+		gotoxy(20,y);printf("%s",nom);
+		gotoxy(41,y);printf("%d",qq);
+		gotoxy(63,y);printf("%0.2lf",val);
+		y++;
+		aux=aux->proximo;
+	}
+    printf("                                                                       \n");
+    printf("\n***********************************************************************\n\n");
+    printf("(Press enter to continue)");
+}
+
+char cod[5];
+		char nom[15];
+		int qq;
+		double val;
+
+// ------------------- Funcionarios -------------------
+
+void menuFuncionario()
+{
+
+    char op;
+
+    do
+    {
+        fflush(stdin);
+        system("cls");
+        printf("******************************************************");
+        printf("\n*                 NewHorizon Market                  *");
+        printf("\n*                                                    *");
+        printf("\n*      1 - Cadastrar Funcionario                     *");
+        printf("\n*      2 - Listar Funcionarios                       *");
+        printf("\n*      3 - Pesquisar Funcionario                     *");
+        printf("\n*                                                    *");
+        printf("\n*                                                    *");
+        printf("\n*      5 - Sair                                      *");
+        printf("\n*                                                    *");
+        printf("\n******************************************************");
+        printf("\n*      Opcao:                                        *");
+        printf("\n******************************************************");
+        gotoxy(15,12); op = getch();
+        switch(op)
+        {
+
+            case '1': cadastraUsuario(); break;
+
+            case '2': autorizaLogin();
+
+            case '3': PesquisaFuncionario(); break;
+
+  	    	case '5': retornar(); break;
+
+            default: gotoxy(15,10); printf("Opcao Invalida\n\nPressione Enter para continuar!"); break;
+        }
+    }while(op != 5);
+}
+
+void cadastraUsuario()
+{
+	Login cUsers;
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","ab"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+		exit(1);
+	}
+	system("CLS");
+	printf("****************************************************\n");
+	printf("               Cadastro de usuarios                 \n");
+	printf("                                                    \n");
+	printf("      Nome:                                         \n");
+	printf("                                                    \n");
+	printf("      Dat. Nasc.:                                   \n");
+	printf("                                                    \n");
+	printf("      telefone:                                     \n");
+	printf("                                                    \n");
+	printf("      E-mail:                                       \n");
+	printf("                                                    \n");
+	printf("      Usuario:                                      \n");
+	printf("                                                    \n");
+	printf("      Senha:                                        \n");
+	printf("                                                    \n");
+	printf("                                                    \n");
+	printf("                                                    \n");
+	printf("****************************************************\n");
+	fflush(stdin);
+	gotoxy(13,4);gets(cUsers.nomeUsuario);
+	fflush(stdin);
+	gotoxy(19,6);gets(cUsers.dataNascimento);
+	fflush(stdin);
+	gotoxy(17,8);gets(cUsers.telefone);
+	fflush(stdin);
+	gotoxy(15,10);gets(cUsers.email);
+	fflush(stdin);
+	gotoxy(16,12);gets(cUsers.usuarioCadastrado);
+	fflush(stdin);
+	gotoxy(14,14);gets(cUsers.senhaCadastrada);
+	fflush(stdin);
+	gotoxy(7,16);printf("Usuario cadastrado com sucesso!");
+	fflush(stdout);
+	gotoxy(1,20);printf("(Press enter to continue)");
+
+	fwrite(&cUsers,sizeof(Login),1,fp);
+	fclose(fp);
+	menu();
+
+}
+
+void MostraLogin()
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+    int i=0,x=3;
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+	}
+    fclose(fp);
+    do
+	{
+		system("CLS");
+		printf("******************************************************\n");
+		printf("                       Login                          \n");
+		printf("                                                      \n");
+		printf("      Usuario:                                        \n");
+		printf("      Senha:                                          \n");
+		printf("                                                      \n");
+		printf("******************************************************\n");
+		fflush(stdin);
+		gotoxy(16,4); gets(usuario);
+		fflush(stdin);
+		gotoxy(14,5); gets(senha);
+		fflush(stdin);
+
+		usuario[strcspn(usuario,"\r\n")] = '\0';
+		senha[strcspn(senha,"\r\n")] = '\0';
+
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))
+		{
+			menu();
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!\n\n");
+		}
+		printf("Restam %d tentativas\t\tPressione qualquer tecla para continuar!",x--);
+		getch();
+		i++;
+	}while(i<=3);
+	exit(1);
+}
+
+void telaLogin()
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+
+	}
+    fclose(fp);
+    system("CLS");
+	printf("******************************************************\n");
+	printf("                       Login                          \n");
+	printf("                                                      \n");
+	printf("      Usuario:                                        \n");
+	printf("      Senha:                                          \n");
+	printf("                                                      \n");
+	printf("******************************************************\n");
+	fflush(stdin);
+	gotoxy(16,4); gets(usuario);
+	fflush(stdin);
+	gotoxy(14,5); gets(senha);
+	fflush(stdin);
+
+	usuario[strcspn(usuario,"\r\n")] = '\0';
+	senha[strcspn(senha,"\r\n")] = '\0';
+
+	if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.usuarioCadastrado,usuario)==0))
+	{
+		menu();
+	}else{
+		printf("\n\nUsuario ou Senha Invalido!\n\n");
+	}
+	getch();
+	exit(1);
+}
+
+void autorizaLogin()
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+
+	}
+    fclose(fp);
+
+	printf("********************************************************\n");
+	printf("                       Login                            \n");
+	printf("                                                        \n");
+	printf("      Usuario:                                          \n");
+	printf("      Senha:                                            \n");
+	printf("                                                        \n");
+	printf("********************************************************\n");
+	fflush(stdin);
+	gotoxy(16,17); gets(usuario);
+	fflush(stdin);
+	gotoxy(14,18); gets(senha);
+	fflush(stdin);
+
+	usuario[strcspn(usuario,"\r\n")] = '\0';
+	senha[strcspn(senha,"\r\n")] = '\0';
+
+	if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.usuarioCadastrado,usuario)==0))
+	{
+		listarFuncionarios();
+	}else{
+		menu();
+	}
+	getch();
+}
+
+void autorizaCaixa()
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+
+	}
+    fclose(fp);
+
+    system("CLS");
+	printf("********************************************************\n");
+	printf("                       Login                            \n");
+	printf("                                                        \n");
+	printf("      Usuario:                                          \n");
+	printf("      Senha:                                            \n");
+	printf("                                                        \n");
+	printf("********************************************************\n");
+	fflush(stdin);
+	gotoxy(16,4); gets(usuario);
+	fflush(stdin);
+	gotoxy(14,5); gets(senha);
+	fflush(stdin);
+
+	usuario[strcspn(usuario,"\r\n")] = '\0';
+	senha[strcspn(senha,"\r\n")] = '\0';
+
+	if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.usuarioCadastrado,usuario)==0))
+	{
+		DesingCaixa();
+	}else{
+		menu();
+	}
+	getch();
+}
+
+void autorizaAdministrativo()
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+
+	}
+    fclose(fp);
+
+	system("CLS");
+	printf("******************************************************\n");
+	printf("                       Login                          \n");
+	printf("                                                      \n");
+	printf("      Usuario:                                        \n");
+	printf("      Senha:                                          \n");
+	printf("                                                      \n");
+	printf("******************************************************\n");
+	fflush(stdin);
+	gotoxy(16,4); gets(usuario);
+	fflush(stdin);
+	gotoxy(14,5); gets(senha);
+	fflush(stdin);
+
+	usuario[strcspn(usuario,"\r\n")] = '\0';
+	senha[strcspn(senha,"\r\n")] = '\0';
+
+	if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.usuarioCadastrado,usuario)==0))
+	{
+		administrativeSystem();
+	}else{
+		menu();
+	}
+	getch();
+}
+
+void autorizaSeguranca()
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+
+	}
+    fclose(fp);
+
+	system("CLS");
+	printf("****************************************************\n");
+	printf("                       Login                        \n");
+	printf("                                                    \n");
+	printf("      Usuario:                                      \n");
+	printf("      Senha:                                        \n");
+	printf("                                                    \n");
+	printf("****************************************************\n");
+	fflush(stdin);
+	gotoxy(16,4); gets(usuario);
+	fflush(stdin);
+	gotoxy(14,5); gets(senha);
+	fflush(stdin);
+
+	usuario[strcspn(usuario,"\r\n")] = '\0';
+	senha[strcspn(senha,"\r\n")] = '\0';
+
+	if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.usuarioCadastrado,usuario)==0))
+	{
+		menuFuncionario();
+	}else{
+		menu();
+	}
+	getch();
+}
+
+void PesquisaFuncionario()
+{
+	Login cUsers;
+	char usuario[12];
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo!\n");
+	}else{
+		system("CLS");
+		printf("---> Pesquisa Funcionario <---\n\n");
+		fflush(stdin);
+		printf("Usuario: ");
+		gets(usuario);
+		printf("\n\n");
+		while(fread(&cUsers,sizeof(Login),1,fp)==1)
+		{
+			if(strcmp(cUsers.usuarioCadastrado,usuario)==0)
+			{
+				printf("---------------------------------\n");
+				printf("Usuario: %s existente",cUsers.usuarioCadastrado);
+				printf("\n---------------------------------\n\n");
+			}else{
+				printf("---------------------------------\n");
+				printf("Usuario: %s inexistente",usuario);
+				printf("\n---------------------------------\n\n");
+			}
+		}
+	}
+	getch();
+}
+
+void listarFuncionarios()
+{
+	Login cUsers;
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo!\n");
+	}else{
+		printf("\n\n");
+		while(fread(&cUsers,sizeof(Login),1,fp)==1)
+		{
+			printf("******************************************************\n");
+			printf("                                                      \n");
+		   	printf("                 Usuario: %s                          \n",cUsers.usuarioCadastrado);
+			printf("                                                      \n");
+			printf("      Nome: %s                                        \n",cUsers.nomeUsuario);
+			printf("      Aniversario: %s                                 \n",cUsers.dataNascimento);
+			printf("      Telefone: %s                                    \n",cUsers.telefone);
+			printf("      E-mail: %s                                      \n",cUsers.email);
+			printf("                                                      \n");
+			printf("******************************************************\n");
+		}
+	}
+	printf("\n\nPressione qualquer tecla para continuar.");
+	getch();
+	menu();
+}
+
+// ------------------- Utilizades -------------------
+void lerParaStruct()
+{
+	Produtos pProduto;
+	FILE *fp;
+	fp = fopen("Produtos.dat", "rb");
+	if(fp == NULL){
+		printf("Problemas na criacao do arquivo\n");
+		return ;
+	}
+	while(!feof(fp)){
+		int lido = fread(&pProduto, sizeof(Produtos),1,fp);
+		if(lido == 1){
+			Produtos *aux = (Produtos*) malloc(sizeof(Produtos));
+			strcpy(aux->codProduto, pProduto.codProduto);
+			strcpy(aux->nomeProduto, pProduto.nomeProduto);
+			aux->quantidade = pProduto.quantidade;
+			aux->valorProduto = pProduto.valorProduto;
+			aux->proximo = inicio;
+			inicio = aux;
+		}
+	}
+	fclose(fp);
+	gotoxy(12,15); printf("Leitura concluida.");
+	getch();
+	administrativeSystem();
+}
+
+void gravarArquivo()
+{
+	Produtos *aux;
+	FILE *fp;
+
+	if((fp = fopen("Produtos.dat","ab"))==NULL)
+	{
+		printf("Erro na abertura do arquivo.");
+		exit(1);
+	}
+	aux = inicio;
+	while(aux!=NULL)
+	{
+		fwrite(&aux,sizeof(Produtos),1,fp);
+		aux = aux->proximo;
+	}
+	fclose(fp);
+	gotoxy(12,15); printf("Gravacao concluida.");
+}
+
+// ------------------- Saída -------------------
+
+void retornar()
+{
+	char c;
+	system("CLS");
+	printf("*************************************************");
+    printf("\n*               Retorno / Saida                 *");
+    printf("\n*                                               *");
+    printf("\n*      1 - Retornar Menu principal              *");
+    printf("\n*      2 - Fechar software                      *");
+    printf("\n*                                               *");
+    printf("\n*************************************************");
+    c = getch();
+    switch(c)
+    {
+		case '1': MostraLogin(); break;
+
+		case '2': sair(); break;
+
+		default: printf("Opcao invalida.   (Press enter to continue!)"); getch(); break;
+	}
+}
+
+void sair()
+{
+    system("CLS");
+    printf("*************************************************");
+    printf("\n*                                               *");
+    printf("\n*     Obrigado , NewHorizon Market agradece     *");
+    printf("\n*         sua presenca, volte sempre.           *");
+    printf("\n*                                               *");
+    printf("\n*************************************************\n");
+    exit(1);
+}
