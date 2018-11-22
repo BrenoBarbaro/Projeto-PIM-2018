@@ -17,14 +17,12 @@ typedef struct Produtos
 	struct Produtos *proximo;
 } Produtos;
 
-typedef struct ListaCliente
+typedef struct ItemCompra
 {
-	char codProduto[5];
-	char nomeProduto[12];
-	double valorProduto;
-	int quantidade;
-	struct ListaCliente *proximo;
-} ListaCliente;
+	char nomeItem[15];
+	double total;
+	ItemCompra *itemProximo;
+} ItemCompra;
 
 typedef struct Login
 {
@@ -39,7 +37,9 @@ typedef struct Login
 
 Produtos *inicio = NULL;
 Produtos *carrinhoCliente = NULL;
+ItemCompra *itemVendaInicio = NULL;
 Login *ListaUsers = NULL;
+int posicao = NULL;
 
 void menu();
 void DesingCaixa();
@@ -155,6 +155,7 @@ void ExibeProdutos()
 	{
 		printf("Nao ha produtos cadastrados.");
 	}else{
+		system("CLS");
 	    printf("***************************************************************************\n");
 	    printf("                                                                           \n");
 	    printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
@@ -166,17 +167,22 @@ void ExibeProdutos()
 			gotoxy(41,y);printf("%d",aux->quantidade);
 			gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
 			y++;
+			posicao += y;
 			aux = aux->proximo;
 		}
-		
 	    printf("                                                                           \n");
-	    printf("\n*************************************************************************\n\n");
+	    printf("\n***************************************************************************\n\n");
 	}
 }
 
 void iniciaCompra()
 {
 	Produtos *aux = inicio;	
+	Produtos *temp = (Produtos*) malloc(sizeof(Produtos));
+	itemVendaInicio *NovoItem = (itemVendaInicio*) malloc(sizeof(itemVendaInicio));
+	NovoItem->itemProximo = NULL;
+	temp->proximo = NULL;
+	char c;
 	double valorTotal=0;
 	
 	if(aux == NULL)
@@ -184,9 +190,10 @@ void iniciaCompra()
 		printf("Nao ha produtos cadastrados.");
 		menu();
 	}
-	//do{
+	do{
 		ExibeProdutos();
 		char codigo[5];
+		int qtd;
 		
 		fflush(stdin);
 		printf("Codigo: ");
@@ -197,48 +204,56 @@ void iniciaCompra()
 		{
 			if(strcmp(codigo,aux->codProduto)==0)
 			{
-				Produtos *temp = (Produtos*) malloc(sizeof(Produtos));
-				temp->proximo = NULL;
+				QTD:
+				printf("Quatidade: ");
+				scanf("%d",&qtd);
+				if(qtd<0)
+				{
+					printf("\tIntroduza uma quantidade superior a 0\n");
+					goto QTD;
+				}else if(qtd>aux->quantidade){
+					printf("\tQuantidade limite em estoque: %d\n\t",aux->quantidade);
+					goto QTD;
+				}
+				temp-
+				strcpy(temp->codProduto,aux->codProduto);
 				strcpy(temp->codProduto,aux->codProduto);
 				strcpy(temp->nomeProduto,aux->nomeProduto);
 				temp->quantidade = aux->quantidade;
 				temp->valorProduto = aux->valorProduto;
 				temp->proximo = carrinhoCliente;
 				carrinhoCliente = temp;
-				
-				printf("%s   %s  %d  %0.2lf",carrinhoCliente->codProduto,carrinhoCliente->nomeProduto,carrinhoCliente->quantidade,carrinhoCliente->valorProduto);
-				getch();
-			}/*else{
-				printf("Codigo invalido.")
-			}*/
+			}
+			aux = aux->proximo;
 		}
-	//}
+		printf("\n\nAdicionar mais produtos?  <SIM> --> (s / n) <-- <NAO>)");
+		carinhaCliente();
+		c =	getch();
+	}while(c == 's' || c == 'S');
 }
 
 void carinhaCliente()
 {
 	Produtos *cCliente = carrinhoCliente;
-	int y=3;
-	printf("\n\n********************************************************\n");
-	printf("*                       Carrinho                       *\n");
+	int temp = posicao;
+	temp+12;
+	printf("\n\n***************************************************************************\n");
+	printf("*                                 Carrinho                                *\n");
+	printf("*                                                                         *\n");
+	printf("*     TOTAL:                                                       *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
 	while(cCliente!=NULL)
 	{
-		//gotoxy(78,y);
-		printf("%s",cCliente->codProduto);
-		//gotoxy(87,y);
-		printf("%s",cCliente->nomeProduto);
-		//gotoxy(107,y);
-		printf("%d",cCliente->quantidade);
-		//gotoxy(119,y);
-		printf("R$%0.2lf",cCliente->valorProduto);
-		cCliente=cCliente->proximo;
-		y++;
+			gotoxy(5,temp);printf("%s",cCliente->codProduto);
+			gotoxy(20,temp);printf("%s",cCliente->nomeProduto);
+			gotoxy(41,temp);printf("%d",cCliente->quantidade);
+			gotoxy(63,temp);printf("%0.2lf",cCliente->valorProduto);
+			cCliente = cCliente->proximo;
+			temp++;
 	}
 	printf("\n\n*                                                      *\n");
-	printf("********************************************************\n");
-	printf("*                              1 - Dinheiro            *\n");
-	printf("*   Total: 1099,00             2 - Cartao de Debito    *\n");
-	printf("*                              3 - Cartao de Credito   *\n");
 	printf("********************************************************\n\n");
 }
 
@@ -339,9 +354,7 @@ void adicionarProdutos()
 {
     Produtos *novo = (Produtos*)malloc(sizeof(Produtos));
     novo->proximo = NULL;
-    char c;
 	
-	do{
 	system("CLS");
 	printf("*********************************************************************");
 	printf("\n*                                                                   *");
@@ -380,10 +393,10 @@ void adicionarProdutos()
             }
             pAux->proximo = novo;
         }
-	gotoxy(7,15);printf("Produto adicionado com sucesso!\tS/N");
+	gotoxy(7,15);printf("Produto adicionado com sucesso!");
+	gotoxy(1,19);printf("(Press enter to continue)");
 	
-	c = getch();
-	}while((c == 's') || (c =='S'));
+	getch();
 }
 
 void ExibeProdutosAdmin()
@@ -421,11 +434,6 @@ void ExibeProdutosAdmin()
     printf("\n***********************************************************************\n\n");
     printf("(Press enter to continue)");
 }
-
-char cod[5];
-		char nom[15];
-		int qq;
-		double val;
 
 // ------------------- Funcionarios -------------------
 
