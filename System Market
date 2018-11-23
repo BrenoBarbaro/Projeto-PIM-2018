@@ -19,10 +19,19 @@ typedef struct Produtos
 
 typedef struct ItemCompra
 {
-	char nomeItem[15];
-	double total;
-	struct ItemCompra *itemProximo;
+	char codProduto[5];
+	char nomeProduto[12];
+	double valorProduto;
+	int quantidade;
+	struct ItemCompra *proximo;
 } ItemCompra;
+
+typedef struct Venda
+{
+	int codVenda;
+	float totalCompra;
+    struct Venda *proximo;
+} Venda;
 
 typedef struct Login
 {
@@ -179,7 +188,7 @@ void ExibeProdutos()
 		{
 			y++;
 		}
-		Produtos *cCliente = carrinhoCliente;
+		ItemCompra *cCliente = itemVendaInicio;
 		
 		if(cCliente == NULL)
 		{
@@ -212,12 +221,15 @@ void ExibeProdutos()
 
 void iniciaCompra()
 {
+	fflush(stdin);
 	Produtos *aux = inicio;	
-	Produtos *temp = (Produtos*) malloc(sizeof(Produtos));
 	ItemCompra *NovoItem = (ItemCompra*) malloc(sizeof(ItemCompra));
-	NovoItem->itemProximo = NULL;
-	temp->proximo = NULL;
+	NovoItem->proximo = NULL;
 	char c;
+	char formaPag;
+	double valorCliente = 0;
+	double valorTotal = 0;
+
 	
 	if(aux == NULL)
 	{
@@ -227,8 +239,13 @@ void iniciaCompra()
 	do{
 		system("CLS");
 		ExibeProdutos();
+
 		char codigo[5];
-		int qtd,x=0;
+		int qtd;
+		for(int x=0;x<5;x++)
+		{
+			codigo[x] = ' ';
+		}
 		
 		fflush(stdin);
 		printf("Codigo: ");
@@ -241,7 +258,9 @@ void iniciaCompra()
 		{
 			if(strcmp(codigo,aux->codProduto)==0)
 			{
-				QTD:
+ 				strcpy(NovoItem->nomeProduto,aux->codProduto);
+ 				strcpy(NovoItem->nomeProduto,aux->nomeProduto);
+ 				QTD:
 				printf("Quatidade: ");
 				scanf("%d",&qtd);
 				if(qtd<0)
@@ -252,22 +271,40 @@ void iniciaCompra()
 					printf("\tQuantidade limite em estoque: %d\n\t",aux->quantidade);
 					goto QTD;
 				}
-				strcpy(temp->codProduto,aux->codProduto);
-				strcpy(temp->codProduto,aux->codProduto);
-				strcpy(temp->nomeProduto,aux->nomeProduto);
-				temp->quantidade = aux->quantidade;
-				temp->valorProduto = aux->valorProduto;
-				temp->proximo = carrinhoCliente;
-				carrinhoCliente = temp;
-			}else{
-				printf("\tCodigo inexistente");
+				NovoItem->valorProduto = aux->valorProduto * qtd;
+				valorTotal += NovoItem->valorProduto;
+				if(itemVendaInicio == NULL)
+				{
+					itemVendaInicio = NovoItem;
+				}else{
+					ItemCompra *auxItem = itemVendaInicio;
+					while(auxItem->proximo != NULL)
+					{
+						auxItem = auxItem->proximo;
+					}
+					auxItem->proximo = NovoItem;
+				}
 			}
 			aux = aux->proximo;
-			printf("%d",x++);
 		}
 		printf("\n\nAdicionar mais produtos?  <SIM> --> (s / n) <-- <NAO>)");
 		c =	getch();
 	}while(c == 's' || c == 'S');
+	
+	printf("\n\nForma de pagamento?\n");
+	printf("1 - Dinheiro\n");
+	printf("2 - Cartao\n");
+	scanf("%d",&formaPag);
+	switch(formaPag)
+	{
+	case '1':
+			printf("Dinheiro recebido: ");
+			scanf("%0.2lf",&valorCliente);
+			//if(valorCliente > NovoItem->v)
+		break;
+	default:
+		break;
+	}
 }
 
 // ----------------- Menu Administrativo -----------------
@@ -961,4 +998,6 @@ void sair()
     printf("\n*                                               *");
     printf("\n*************************************************\n");
     exit(1);
+}
+  exit(1);
 }
