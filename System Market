@@ -21,7 +21,7 @@ typedef struct ItemCompra
 {
 	char nomeItem[15];
 	double total;
-	ItemCompra *itemProximo;
+	struct ItemCompra *itemProximo;
 } ItemCompra;
 
 typedef struct Login
@@ -45,7 +45,6 @@ void menu();
 void DesingCaixa();
 void iniciaCompra();
 void ExibeProdutos();
-void carinhaCliente();
 void administrativeSystem();
 void saldoDia();
 void produtosVendidos();
@@ -113,8 +112,9 @@ void menu()
 
 			case '5': sair(); break;
 
-			default: gotoxy(15,10); printf("Opcao Invalida.  (Press enter to continue)"); getch(); break;
+			default: gotoxy(15,11); printf("Opcao Invalida.  (Press enter to continue)"); break;
 		}
+		gotoxy(1,13); getch();
 	}while(c != '5');
 }
 
@@ -154,6 +154,7 @@ void ExibeProdutos()
 	if(aux == NULL)
 	{
 		printf("Nao ha produtos cadastrados.");
+		printf("\t(Press enter to continue)");
 	}else{
 		system("CLS");
 	    printf("***************************************************************************\n");
@@ -172,6 +173,40 @@ void ExibeProdutos()
 		}
 	    printf("                                                                           \n");
 	    printf("\n***************************************************************************\n\n");
+	    
+	    int x=0;
+	    for(x=0;x<9;x++)
+		{
+			y++;
+		}
+		Produtos *cCliente = carrinhoCliente;
+		
+		if(cCliente == NULL)
+		{
+		}else{
+			printf("\n\n***************************************************************************\n");
+			printf("*                                 Carrinho                                *\n");
+			printf("*                                                                         *\n");
+			printf("*     TOTAL:                                                              *\n");
+			printf("*                                                                         *\n");
+			printf("***************************************************************************\n\n");
+			printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+			gotoxy(14,y); printf("5555");
+			for(x=0;x<6;x++)
+			{
+				y++;
+			}
+			while(cCliente!=NULL)
+			{
+					gotoxy(5,y);printf("%s",cCliente->codProduto);
+					gotoxy(20,y);printf("%s",cCliente->nomeProduto);
+					gotoxy(41,y);printf("%d",cCliente->quantidade);
+					gotoxy(63,y);printf("%0.2lf",cCliente->valorProduto);
+					cCliente = cCliente->proximo;
+			}
+			printf("\n\n*                                                                         *\n");
+			printf("***************************************************************************\n\n");
+		}
 	}
 }
 
@@ -179,11 +214,10 @@ void iniciaCompra()
 {
 	Produtos *aux = inicio;	
 	Produtos *temp = (Produtos*) malloc(sizeof(Produtos));
-	itemVendaInicio *NovoItem = (itemVendaInicio*) malloc(sizeof(itemVendaInicio));
+	ItemCompra *NovoItem = (ItemCompra*) malloc(sizeof(ItemCompra));
 	NovoItem->itemProximo = NULL;
 	temp->proximo = NULL;
 	char c;
-	double valorTotal=0;
 	
 	if(aux == NULL)
 	{
@@ -191,13 +225,16 @@ void iniciaCompra()
 		menu();
 	}
 	do{
+		system("CLS");
 		ExibeProdutos();
 		char codigo[5];
-		int qtd;
+		int qtd,x=0;
 		
 		fflush(stdin);
 		printf("Codigo: ");
+		fflush(stdin);
 		gets(codigo);
+		fflush(stdin);
 		codigo[strcspn(codigo,"\r\n")] = '\0';
 		fflush(stdin);
 		while(aux!=NULL)
@@ -215,7 +252,6 @@ void iniciaCompra()
 					printf("\tQuantidade limite em estoque: %d\n\t",aux->quantidade);
 					goto QTD;
 				}
-				temp-
 				strcpy(temp->codProduto,aux->codProduto);
 				strcpy(temp->codProduto,aux->codProduto);
 				strcpy(temp->nomeProduto,aux->nomeProduto);
@@ -223,38 +259,15 @@ void iniciaCompra()
 				temp->valorProduto = aux->valorProduto;
 				temp->proximo = carrinhoCliente;
 				carrinhoCliente = temp;
+			}else{
+				printf("\tCodigo inexistente");
 			}
 			aux = aux->proximo;
+			printf("%d",x++);
 		}
 		printf("\n\nAdicionar mais produtos?  <SIM> --> (s / n) <-- <NAO>)");
-		carinhaCliente();
 		c =	getch();
 	}while(c == 's' || c == 'S');
-}
-
-void carinhaCliente()
-{
-	Produtos *cCliente = carrinhoCliente;
-	int temp = posicao;
-	temp+12;
-	printf("\n\n***************************************************************************\n");
-	printf("*                                 Carrinho                                *\n");
-	printf("*                                                                         *\n");
-	printf("*     TOTAL:                                                       *\n");
-	printf("*                                                                         *\n");
-	printf("***************************************************************************\n");
-	printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
-	while(cCliente!=NULL)
-	{
-			gotoxy(5,temp);printf("%s",cCliente->codProduto);
-			gotoxy(20,temp);printf("%s",cCliente->nomeProduto);
-			gotoxy(41,temp);printf("%d",cCliente->quantidade);
-			gotoxy(63,temp);printf("%0.2lf",cCliente->valorProduto);
-			cCliente = cCliente->proximo;
-			temp++;
-	}
-	printf("\n\n*                                                      *\n");
-	printf("********************************************************\n\n");
 }
 
 // ----------------- Menu Administrativo -----------------
