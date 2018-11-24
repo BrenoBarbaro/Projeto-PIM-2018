@@ -17,19 +17,10 @@ typedef struct Produtos
 	struct Produtos *proximo;
 } Produtos;
 
-typedef struct ItemCompra
-{
-	char codProduto[5];
-	char nomeProduto[12];
-	double valorProduto;
-	int quantidade;
-	struct ItemCompra *proximo;
-} ItemCompra;
-
 typedef struct Venda
 {
 	int codVenda;
-	float totalCompra;
+	double totalCompra;
     struct Venda *proximo;
 } Venda;
 
@@ -46,14 +37,15 @@ typedef struct Login
 
 Produtos *inicio = NULL;
 Produtos *carrinhoCliente = NULL;
-ItemCompra *itemVendaInicio = NULL;
+Produtos *itemVendaInicio = NULL;
 Login *ListaUsers = NULL;
 int posicao = NULL;
 
 void menu();
 void DesingCaixa();
-void iniciaCompra();
 void ExibeProdutos();
+void iniciaCompra();
+void notaVendaCliente()
 void administrativeSystem();
 void saldoDia();
 void produtosVendidos();
@@ -76,6 +68,7 @@ void retornar();
 
 int main()
 {
+
 	FILE *fp;
 
 	if((fp = fopen("Usuarios.dat","rb"))==NULL)
@@ -88,7 +81,6 @@ int main()
 
 	return 0;
 }
-
 
 // ----------------------- Menu -----------------------
 
@@ -158,6 +150,7 @@ void DesingCaixa()
 void ExibeProdutos()
 {
     Produtos *aux = inicio;
+    Produtos *cCliente = itemVendaInicio;
 	int y=5;
 
 	if(aux == NULL)
@@ -177,7 +170,6 @@ void ExibeProdutos()
 			gotoxy(41,y);printf("%d",aux->quantidade);
 			gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
 			y++;
-			posicao += y;
 			aux = aux->proximo;
 		}
 	    printf("                                                                           \n");
@@ -188,7 +180,6 @@ void ExibeProdutos()
 		{
 			y++;
 		}
-		ItemCompra *cCliente = itemVendaInicio;
 		
 		if(cCliente == NULL)
 		{
@@ -223,20 +214,27 @@ void iniciaCompra()
 {
 	fflush(stdin);
 	Produtos *aux = inicio;	
-	ItemCompra *NovoItem = (ItemCompra*) malloc(sizeof(ItemCompra));
+	Produtos *NovoItem = (Produtos*) malloc(sizeof(Produtos));
 	NovoItem->proximo = NULL;
 	char c;
 	char formaPag;
+	char cartaoDebito[20];
+	char cartaoCredito[20];
+	int senhaDebito = 0;
+	int senhaCredito = 0;
+	double saldoDebito = 0;
+	double saldoCredio = 0;
+	double saldoCaixa = 800;
+	double resultValor = 0;
 	double valorCliente = 0;
 	double valorTotal = 0;
-
+	
 	
 	if(aux == NULL)
 	{
 		printf("Nao ha produtos cadastrados.");
 		menu();
 	}
-	do{
 		system("CLS");
 		ExibeProdutos();
 
@@ -258,26 +256,29 @@ void iniciaCompra()
 		{
 			if(strcmp(codigo,aux->codProduto)==0)
 			{
- 				strcpy(NovoItem->nomeProduto,aux->codProduto);
+ 				strcpy(NovoItem->codProduto,aux->codProduto);
  				strcpy(NovoItem->nomeProduto,aux->nomeProduto);
  				QTD:
 				printf("Quatidade: ");
 				scanf("%d",&qtd);
-				if(qtd<0)
+				if(qtd<=0)
 				{
-					printf("\tIntroduza uma quantidade superior a 0\n");
+					printf("\tEstoque vazio, avise o gerente.\n");
 					goto QTD;
 				}else if(qtd>aux->quantidade){
 					printf("\tQuantidade limite em estoque: %d\n\t",aux->quantidade);
 					goto QTD;
 				}
-				NovoItem->valorProduto = aux->valorProduto * qtd;
-				valorTotal += NovoItem->valorProduto;
+				NovoItem->quantidade = qtd;
+				aux->quantidade -= qtd;
+				NovoItem->valorProduto = aux->valorProduto;
+				resultValor = aux->valorProduto * qtd;
+				valorTotal += resultValor;
+				Produtos *auxItem = itemVendaInicio;
 				if(itemVendaInicio == NULL)
 				{
 					itemVendaInicio = NovoItem;
 				}else{
-					ItemCompra *auxItem = itemVendaInicio;
 					while(auxItem->proximo != NULL)
 					{
 						auxItem = auxItem->proximo;
@@ -288,23 +289,239 @@ void iniciaCompra()
 			aux = aux->proximo;
 		}
 		printf("\n\nAdicionar mais produtos?  <SIM> --> (s / n) <-- <NAO>)");
+		confirma:
 		c =	getch();
-	}while(c == 's' || c == 'S');
-	
-	printf("\n\nForma de pagamento?\n");
-	printf("1 - Dinheiro\n");
-	printf("2 - Cartao\n");
-	scanf("%d",&formaPag);
-	switch(formaPag)
+		if((c == 's') || (c == 'S'))
+		{
+			iniciaCompra();
+		}
+		else if((c == 'n') || (c== 'N'))
+		{
+			Venda *novaVenda = (Venda*)malloc(sizeof(Venda));
+			novaVenda->proximo = NULL;
+			int xy=9;
+			novaVenda->totalCompra = valorTotal;
+			Produtos *cCliente = itemVendaInicio;
+			system("CLS");
+			printf("***************************************************************************\n");
+			printf("                                 Carrinho                                \n");
+			printf("                                                                         \n");
+			printf("     TOTAL:  R$                                                            \n");
+			printf("                                                                         \n");
+			printf("***************************************************************************\n");
+			printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+			gotoxy(17,4); printf("%0.2lf",novaVenda->totalCompra);
+			while(cCliente!=NULL)
+			{
+					gotoxy(5,xy);printf("%s",cCliente->codProduto);
+					gotoxy(20,xy);printf("%s",cCliente->nomeProduto);
+					gotoxy(41,xy);printf("%d",cCliente->quantidade);
+					gotoxy(63,xy);printf("%0.2lf",cCliente->valorProduto);
+					cCliente = cCliente->proximo;
+					xy++;
+			}
+			printf("\n\n*                                                                         *\n");
+			printf("***************************************************************************\n\n");
+			
+			FormPag:
+			printf("\n\nForma de pagamento?\n");
+			printf("1 - Dinheiro\n");
+			printf("2 - Cartao\n\n");
+			formaPag = getch();
+			switch(formaPag)
+			{
+				case '1':
+						Dinheiro:
+						printf("Introduza o valor: R$ ");
+						valCliente:
+						scanf("%lf",&valorCliente);
+						if(valorCliente < novaVenda->totalCompra)
+						{
+							printf("\n\nValor da compra: R$ %0.2lf\n",novaVenda->totalCompra);
+							printf("Valor introduzido pelo cliente: R$ %0.2lf",valorCliente);
+							printf("\n\nIntroduza o valor novamente: ");
+							goto valCliente;
+						}
+						double troco;
+						troco = valorCliente - novaVenda->totalCompra;
+						saldoCaixa -= troco;
+						printf("\n\nTroco: R$ %0.2lf",troco);
+						printf("\nSaldo em caixa: R$ %0.2lf",saldoCaixa);
+						
+						printf("\n\n*************************************************");
+					    printf("\n*                                               *");
+					    printf("\n*     Obrigado , NewHorizon Market agradece     *");
+					    printf("\n*         sua presenca, volte sempre.           *");
+					    printf("\n*                                               *");
+					    printf("\n*************************************************\n");
+				break;
+				case '2':
+						printf("3 -> Cartao de Debito\n");
+						printf("4 -> Cartao de Credito\n");
+						DebOuCred:
+						c = getch();
+						switch(c)
+						{
+							case '3': 
+									cardDebito:
+									int tamanho;
+									printf("\nIMPORTANTE: Digite o numero do cartao contendo 16 digitos \nseparados por espaco. Ex: 0000 0000 0000 0000 )
+									printf("\nDigite o numero do cartao: ");
+									Card:
+									fflush(stdin)
+									fgets(cartaoDebito,sizeof(cartaoDebito),stdin);
+									fflush(stdin);
+									cartaoDebito[strcspn(cartaoDebito,"\r\n")] = '\0';
+									strcpy(tamanho,strlen(cartaoDebito));
+									if(tamanho>19)
+									{
+										printf("\nCartao digitado com mais de 16 digitos.");
+										printf("\nDigite o numero do cartao novamente: ");
+										goto Card;
+									}else if(tamanho<19){
+										printf("\nCartao digitado com menos de 16 digitos.");
+										printf("\nDigite o numero do cartao novamente: ");
+										goto Card;
+									}else{
+										printf(")
+										printf("Informe o saldo do Cartao: ");
+										fflush(stdin);
+										scanf("%0.2lf",saldoDebito);
+										fflush(stdin);
+										printf("Digite a senha(SOMENTE DIGITOS): ");
+										scanf("%d",senhaDebito);
+										if(saldoDebito<novaVenda->totalCompra)
+										{
+											char z;
+											printf("\n\nSaldo insuficiente.   Tentar novamente? (s/n)");
+											SaldoIns:
+											z = getch();
+											if((z == 's') || (z == 'S'))
+											{
+												goto cardDebito;
+											}else if((z == 'n') || (z == 'N'))
+											{
+												PagOuCanc:
+												char c;
+												printf("\n\n1 - Pagar em dinheiro");
+												printf("\n2 - Cancelar compra");
+												c = getch();
+												switch(c)
+												{
+													case '1': printf("\n\n"); goto Dinheiro; break;
+													
+													case '2': novaVenda = NULL;	itemVendaInicio = NULL; break;
+													
+													default: printf("\nOpca invalida"); goto PagOuCanc;
+												}
+											}else{
+												printf("\nTecla invalida.  Tente novamente (s/n)"); goto SaldoIns;
+											}
+										}else{
+											saldoDebito -= novaVenda->totalCompra;
+											printf("Saldo restante Debito: R$ %0.2lf",saldoDebito);
+											printf("\nPagamento efetuado");
+										}
+									}
+							break;
+						
+							case '4':
+									cardCredito:
+									int tamanho;
+									printf("\nIMPORTANTE: Digite o numero do cartao contendo 16 digitos \nseparados por espaco. Ex: 0000 0000 0000 0000 )
+									printf("\nDigite o numero do cartao: ");
+									Card:
+									fflush(stdin)
+									fgets(cartaoCredito,sizeof(cartaoCredito),stdin);
+									fflush(stdin);
+									cartaoCredito[strcspn(cartaoCredito,"\r\n")] = '\0';
+									strcpy(tamanho,strlen(cartaoCredito));
+									if(tamanho>19)
+									{
+										printf("\nCartao digitado com mais de 16 digitos.");
+										printf("\nDigite o numero do cartao novamente: ");
+										goto cardCredito;
+									}else if(tamanho<19){
+										printf("\nCartao digitado com menos de 16 digitos.");
+										printf("\nDigite o numero do cartao novamente: ");
+										goto cardCredito;
+									}else{
+										printf(")
+										printf("Informe o saldo do Cartao: ");
+										fflush(stdin);
+										scanf("%0.2lf",saldoCredio);
+										fflush(stdin);
+										printf("Digite a senha(SOMENTE DIGITOS): ");
+										scanf("%d",senhaCredito);
+										if(saldoCredio<novaVenda->totalCompra)
+										{
+											char z;
+											printf("\n\nSaldo insuficiente.   Tentar novamente? (s/n)");
+											SaldoIns:
+											z = getch();
+											if((z == 's') || (z == 'S'))
+											{
+												goto cardCredito;
+											}else if((z == 'n') || (z == 'N'))
+											{
+												PagOuCanc:
+												char c;
+												printf("\n\n1 - Pagar em dinheiro");
+												printf("\n2 - Cancelar compra");
+												c = getch();
+												switch(c)
+												{
+													case '1': printf("\n\n"); goto Dinheiro; break;
+													
+													case '2': novaVenda = NULL;	itemVendaInicio = NULL; break;
+													
+													default: printf("\nOpca invalida"); goto PagOuCanc;
+												}
+											}else{
+												printf("\nTecla invalida.  Tente novamente (s/n)"); goto SaldoIns;
+											}
+										}else{
+											saldoDebito -= novaVenda->totalCompra;
+											printf("Saldo restante Debito: R$ %0.2lf",saldoDebito);
+											printf("\nPagamento efetuado");
+										}
+									}
+							break;
+							
+							default: printf("\n\nOpcao Invalida.   Tente novamente."); goto DebOuCred; break;
+						}
+				break;
+				
+				default: printf("\n\nOpcao Invalida.   Tente novamente."); goto FormPag; break;
+			}
+		}
+		notaVendaCliente();
+}
+
+void notaVendaCliente()
+{
+	printf("\n\n***************************************************************************\n");
+	printf("*                                                                *\n");
+	printf("*                                                                         *\n");
+	printf("*                                                                   *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n\n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	gotoxy(14,y); printf("5555");
+	for(x=0;x<6;x++)
 	{
-	case '1':
-			printf("Dinheiro recebido: ");
-			scanf("%0.2lf",&valorCliente);
-			//if(valorCliente > NovoItem->v)
-		break;
-	default:
-		break;
+		y++;
 	}
+	while(cCliente!=NULL)
+	{
+		gotoxy(5,y);printf("%s",cCliente->codProduto);
+		gotoxy(20,y);printf("%s",cCliente->nomeProduto);
+		gotoxy(41,y);printf("%d",cCliente->quantidade);
+		gotoxy(63,y);printf("%0.2lf",cCliente->valorProduto);
+		cCliente = cCliente->proximo;
+	}
+	printf("\n\n*                                                                         *\n");
+	printf("***************************************************************************\n\n");
 }
 
 // ----------------- Menu Administrativo -----------------
@@ -436,13 +653,13 @@ void adicionarProdutos()
 	
 	if(inicio == NULL){
             inicio = novo;
-        }else{
-            Produtos *pAux = inicio;
-            while(pAux->proximo != NULL){
-                pAux = pAux->proximo;
-            }
-            pAux->proximo = novo;
-        }
+	}else{
+		Produtos *pAux = inicio;
+        while(pAux->proximo != NULL){
+        	pAux = pAux->proximo;	
+		}
+		pAux->proximo = novo;
+	}
 	gotoxy(7,15);printf("Produto adicionado com sucesso!");
 	gotoxy(1,19);printf("(Press enter to continue)");
 	
@@ -998,6 +1215,4 @@ void sair()
     printf("\n*                                               *");
     printf("\n*************************************************\n");
     exit(1);
-}
-  exit(1);
 }
