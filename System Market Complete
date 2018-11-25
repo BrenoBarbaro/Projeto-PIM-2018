@@ -1,0 +1,1275 @@
+/* Este software foi desenvolvido
+para o trabalho semestral da
+(UNIP)-UNIVERSIDADE PAULISTA
+
+Onde o tema para desenvolvimento era
+um software para SuperMercados*/
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+#include <windows.h>
+
+void gotoxy(int x, int y){     // --->>>  Funcao para definir posicionamento das informações
+     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD){x-1,y-1});
+}
+
+// Estrutura para armazenar informações dos produtos
+typedef struct Produtos
+{
+	char codProduto[5];           // Codigo do Produto
+	char nomeProduto[12];         // Nome do Produto
+	double valorProduto;          // Valor do Produto
+	int quantidade;               // Quantidade do Produto
+	struct Produtos *proximo;     // Estrutura encadeada -> para ir ao proximo produto
+} Produtos;       // Nome da Estrutura 
+
+// Estrutura para armazenar informações das vendas
+typedef struct Venda
+{
+	int quantidadeProduto;        // Quantidade total de produtos na venda
+	double totalCompra;           // Valor total da venda
+    struct Venda *proximo;        // Estrutura encadeada -> para ir a proxima venda
+} Venda;          // Nome da Estrutura
+
+// Estrutura para armazenar informações dos funcionarios
+typedef struct Login
+{
+	char nomeUsuario[30];         // Nome de usuario para o Funcionario
+    char dataNascimento[11];      // Data de aniversario do Funcionario
+    char telefone[12];            // Telefone para entrar em contato com o Funcionario
+    char email[30];               // E-mail pessoal do Funcionario
+	char usuarioCadastrado[12];   // Nome de usuario que sera utilizado dentro do sistema
+	char senhaCadastrada[8];      // Senha de usuario que sera utilizado dentro do sistema
+	struct Login *proximo;   // Estrutura encadeada -> para ir ao proximo Funcionario
+}Login;           // Nome da Estrutura
+
+Produtos *inicio = NULL;    // Lista de Produtos principal  é igual a NULO
+Produtos *carrinhoCliente = NULL; // Lista de Produtos principal do cliente: Nesta Lista estara apenas os produtos escolhidos pelo cliente 
+Produtos *itemVendaInicio = NULL; // Lista de Produtos de venda: Nesta lista serão registrados os produtos selecionados para venda antes da conclusao da venda
+Venda *inicioVenda = NULL; // No inicioVenda estará registrado todos os produtos que forem vendidos
+Login *ListaUsers = NULL; // Lista de Usuarios registrados
+
+int quantidadeGlobal=0;  // Quantidade de produtos total selecionados pelo cliente
+double totalGlobal=0;  // Valor total da venda ao finalizar a venda
+double trocoGlobal=0;  // Valor de troco para o cliente no final da venda
+double somaValor=0;  // Valor de vamo dos produtos selecionados pelo cliente
+
+void menu();  // Menu Principal 
+void DesingCaixa();  // Nesta função ira direcionar para a lista de produtos para iniciar as compras
+void ExibeProdutos(); // Nesta função exibirá todos os produtos cadastrados  ( Esta ligada diretamente a função IniciaCompra() )
+void iniciaCompra(); // Nesta funcão permitirá o cliente escolher seus produtos e finalizar a compra
+void notaVendaCliente(); // Nesta função exibira a nota de venda do cliente   (DINHEIRO)
+void notaVendaDebito(); // Nesta função exibira a nota de venda do cliente   (DEBITO)
+void notaVendaCredito(); // Nesta função exibira a nota de venda do cliente   (CREDITO)
+void administrativeSystem();  // Função Administrativa do software
+void saldoDia();  // Nesta função exibirá as vendas efetuadas no dia
+void adicionarProdutos();  // Esta função é responsavel por adicionar os produtos ao mercado
+void ExibeProdutosAdmin();  // Esta função exibe os produtos cadastrados
+void menuFuncionario();  // Menu Principal de segurança
+void cadastraUsuario(); // Nesta função será feito o cadastro de novos funcionarios
+void MostraLogin();  // Nesta função será pedido usuario e senha para ter acesso a outros locais
+void telaLogin();   // Nesta função será pedido usuario e senha para ter acesso a outros locais
+void autorizaLogin();  // Nesta função será pedido usuario e senha para ter acesso a outros locais
+void autorizaCaixa();  // Nesta função será pedido usuario e senha para ter acesso ao sistema de caixa
+void autorizaAdministrativo();  // Nesta função será pedido usuario e senha para ter acesso ao sistema administrativo
+void autorizaSeguranca(); // Nesta função será pedido usuario e senha para ter acesso ao sistema de segurança
+void PesquisaFuncionario(); // Função de pesquisa de Funcionarios
+void listarFuncionarios(); // Função de listagem de funcionarios
+void lerParaStruct();  // Função que fara leitura dos dados contidos em arquivo
+void gravarArquivo(); // Função que irá gravas informações em arquivo
+void sair(); // Função de saída
+void retornar(); // Função de Retorno para outras funções
+
+int main()   // Função Principal
+{
+
+	FILE *fp;       // Criado um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)  // Verifica de o arquivo é nulo
+	{
+		cadastraUsuario();  // Se o arquivo for nulo, significa que é a primeira execução do software, então nesta função ira criar login de acesso
+	}else{  // Se o arquivo nao for nulo (existente)
+		telaLogin(); // É pedido para fazer login com usuario e senha cadastrado
+	}
+	fclose(fp);  // Fecha arquivo
+
+	return 0;
+}
+
+// ----------------------- Menu -----------------------
+
+void menu()
+{
+	char c;   // Variável utilizada para captação de teclas 
+
+	do{  // Inicia um loop de repetição
+	    system("cls");  // Função de limpeza de tela
+	    printf("**********************************************************");
+	    printf("\n*                    NewHorizon Market                   *");
+	    printf("\n*                                                        *");
+	    printf("\n*      1 - Sistema de Caixa                              *");
+	    printf("\n*      2 - Sistema Administrativo                        *");
+	    printf("\n*      3 - Sistema de Seguranca                          *");     // MENU
+	    printf("\n*                                                        *");
+	    printf("\n*      5 - Sair                                          *");
+	    printf("\n*                                                        *");
+	    printf("\n**********************************************************");
+	    printf("\n*      Opcao:                                            *");
+	    printf("\n**********************************************************");
+	    gotoxy(15,11); c = getch();   // sera armazenado em "c" a tecla pressionada no teclado
+	    switch(c)
+		{
+			case '1': autorizaCaixa(); break;    // Função de autorização de sistem de caixa
+
+			case '2': autorizaAdministrativo(); break;    // Função de autorização de sistema administrativo
+
+			case '3': autorizaSeguranca(); break;   // Função de autorização de sistema de segurança
+
+			case '5': sair(); break;   // Função de saída
+
+			default: gotoxy(15,11); printf("Opcao Invalida.  (Press enter to continue)"); break;   // Mensagem de informação invalida
+		}
+		gotoxy(1,13); getch();
+	}while(c != '5');   // Finaliza o loop de repetição se a condição for verdadeira
+}
+
+// --------------------- Menu Caixa --------------------
+
+void DesingCaixa()  // Função de direcionamento para o Caixa
+{
+	char op1;
+    system("cls");  // Função para Limpeza de tela
+    printf("******************************************************");
+    printf("\n*                Sistema de Mercado                  *");
+    printf("\n*                                                    *");
+    printf("\n*      1 - Iniciar Compras                           *");
+    printf("\n*                                                    *");
+    printf("\n*                                                    *");    // MENU
+    printf("\n*      5 - Sair                                      *");
+    printf("\n*                                                    *");
+    printf("\n******************************************************");
+    printf("\n*      Opcao:                                        *");
+    printf("\n******************************************************\n");
+    op1 = getch();     // sera armazenado em "op1" a tecla pressionada no teclado
+    switch(op1)
+    {
+        case '1': iniciaCompra(); break;   // Função de vendas
+
+        case '5': retornar(); break;   // Função de Retorno para o inicio
+
+        default: printf("\n\nTecla invalida!\n"); break;   // Menssagem de erro
+    }
+}
+
+void ExibeProdutos()   // Função de exibição de Produtos
+{
+    Produtos *aux = inicio;   // *aux irá receber todo conteudo contido em inicio
+	int y=5;
+
+	if(aux == NULL)   // Verifica se aux é nulo
+	{
+		printf("Nao ha produtos cadastrados.");
+		printf("\t(Press enter to continue)");
+	}else{
+		system("CLS");
+	    printf("***************************************************************************\n");
+	    printf("                                                                           \n");
+	    printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	    printf("                                                                           \n");
+	    while(aux!=NULL)
+		{                                                         // Neste loop de repetição
+			gotoxy(5,y);printf("%s",aux->codProduto);             // irá listar todos os produtos
+			gotoxy(20,y);printf("%s",aux->nomeProduto);           // cadastrados no mercado
+			gotoxy(41,y);printf("%d",aux->quantidade);
+			gotoxy(63,y);printf("%0.2lf",aux->valorProduto);
+			y++;
+			aux = aux->proximo;       // Comando que fará com que liste o proximo produto
+		}
+	    printf("                                                                           \n");
+	    printf("\n***************************************************************************\n\n");
+	}
+}
+
+void iniciaCompra()    // Função Compra
+{
+	Produtos *aux = inicio;   // Variavel recebe todo conteudo contido na lista de produtos inicio
+	Produtos *NovoItem = (Produtos*) malloc(sizeof(Produtos));   // Cria uma variavel dinâmica para armazenamento dos produtos
+	NovoItem->proximo = NULL; // Diz que o proximo produto é nulo
+	Venda *auxVenda = inicioVenda;   // Cria uma variavel temporaria para auxiliar o inicio da venda
+
+	int qtd;    // Quantidade de produtos
+	int senhaDebito = 0;    // Senha do cartao de Debito
+	int senhaCredito = 0;   // Senha do cartao de Credito
+	int tamanho;    // Tamanho irá medir o tamanho correto dos digitos do cartao informado
+	char codigo[5];   // Codigo digitado pelo cliente
+	char c;  // variavel para captação de tecla do teclado
+	char formaPag;   // Direcionamento para forma de pagamento
+	char cartaoDebito[20];  // Dígitos do cartao de Debito
+	char cartaoCredito[20];  // Dígitos do cartao de Credito
+	double troco;  // Troco do cliente
+	double saldoCaixa = 800;    // Saldo em caixa
+	double resultValor = 0;   // Resultado da operação matematica dos valores
+	double valorCliente = 0;   // Valor recebido em dinheiro do cliente para pagar a compra
+	double valorTotal = 0;   // Valor total da compra
+	
+	if(aux == NULL)   // Verifica se o auxiliar da lista produtos tem produtos cadastrados ou nao
+	{
+		printf("Nao ha produtos cadastrados.\n\n");
+		printf("(Press enter to continue)");
+		getch();  // Captação de tecla automatica
+		menu();   // Direcionamento para o menu Principal
+	}
+	
+	do{	   // Loop de repetição 
+		system("CLS");  // Função de limpeza de tela
+		ExibeProdutos();  // Função Exibir produtos
+		
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		printf("Codigo: "); 
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gets(codigo);   // Recebe codigo do produto escolhido pelo cliente 
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		codigo[strcspn(codigo,"\r\n")] = '\0';   // Verifica o final do codigo informado e coloca o indicador nulo no final
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		while(aux!=NULL)  // Loop de repetição para percorrer a lista até o produto escolhido
+		{
+			if(strcmp(codigo,aux->codProduto)==0)   // Compara o codigo do cliente com o codigo cadastrado no sistema
+			{                                       // caso encontrado o produto
+ 				strcpy(NovoItem->codProduto,aux->codProduto);   // copia o codigo do produto para a lista de item do cliente
+ 				strcpy(NovoItem->nomeProduto,aux->nomeProduto);  // copia o nome do produto para a lista de item do cliente
+ 				QTD:  // Função de Retorno
+				printf("Quantidade: ");   // Pergunta ao cliente a quantidade de produtos desejada
+				scanf("%d",&qtd);  // Recebe a quantidade de produtos desejado
+				quantidadeGlobal += qtd;   // Adiciona o produtos 
+				if(qtd<=0)  // caso a quantidade seja inferior ou igual a 0  exibira menssagem de erro
+				{
+					printf("\tIntroduza uma quantidade superior a 0.\n");  // Introduza uma quantidade maior que 0
+					goto QTD;  // Função de direcionamento para QTD mais acima na linha 243.
+				}else if(qtd>aux->quantidade){    // Caso a quantidade informada for superior á em estoque aparecerá menssagem de erro
+					printf("\tQuantidade limite em estoque: %d\n\t",aux->quantidade);  // Quantidade limite em estoque , avise ao gerente
+					goto QTD;  // Função de direcionamento para QTD mais acima na linha 243.
+				}
+				NovoItem->quantidade = qtd;   // Adiciona a quantidade de item desejada pelo cliente no carrinho dela
+				aux->quantidade -= qtd;  // Remove da prateleira do mercado a quantidade que o cliente pegou
+				NovoItem->valorProduto = aux->valorProduto;  // Copia o valor do item 
+				resultValor = aux->valorProduto * qtd;  // Resultado em valor será a QUANTIDADE DE PRODUTOS x VALOR DO PRODUTO
+				valorTotal += resultValor;  // Valor total do produto seleciondo
+				Produtos *auxItem = itemVendaInicio;  // Cria um auxiliar item que recebe todo conteudo contido em itemVendaInicio
+				if(itemVendaInicio == NULL)   // Verifica se a lista itemVendaInicio é nulo, se for nulo
+				{
+					itemVendaInicio = NovoItem; // Adiciona o produto a lista ( esta é a lista de produtos do cliente )
+				}else{    // Caso não seja nulo
+					while(auxItem->proximo != NULL)  // Loop de repetição:  percorre até a proximo posição disponivel 
+					{
+						auxItem = auxItem->proximo; // auxiliarItem passa a ser a proximo posição disponivel
+					}
+					auxItem->proximo = NovoItem;  // Recebe o novo item nesta posição
+				}
+			}
+			aux = aux->proximo;    // aux passa para a proximo possição 
+		}
+		printf("\n\nAdicionar mais produtos?  <SIM> --> (s / n) <-- <NAO>)");    // Pergunta se quer mais produtos ou não
+		c =	getch();   // Captação de tecla automatica
+	}while((c == 's') || (c == 'S'));  // Caso cliente pressione a tecla "s", voltará ao inicio para adicionar outro produto
+									  // Caso pressione a tecla "n" ele dará continuidade
+			Venda *novaVenda = (Venda*)malloc(sizeof(Venda));  // Cria uma lista de venda
+			novaVenda->proximo = NULL;   // Diz que o proximo da lista é nulo
+			int xy=9;
+			novaVenda->totalCompra = valorTotal;  // A nova lista recebe o valor total de toda a compra
+			novaVenda->quantidadeProduto = quantidadeGlobal;  // A nova lista recebe a quantidade total de produtos da compra
+			
+			Produtos *cCliente = itemVendaInicio;  // Cria variavel cCliente 
+			system("CLS");   // Função limpeza de tela
+			printf("***************************************************************************\n");
+			printf("                                 Carrinho                                \n");
+			printf("                                                                         \n");
+			printf("     TOTAL:  R$                                                            \n");
+			printf("                                                                         \n");
+			printf("***************************************************************************\n");
+			printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+			gotoxy(17,4); printf("%0.2lf",novaVenda->totalCompra);   // Mostra o total da compra
+			while(cCliente!=NULL)    // Loop de repetição :  Mostra todos os produtos do cliente
+			{
+					gotoxy(5,xy);printf("%s",cCliente->codProduto);  // Mostra o codigo do produto
+					gotoxy(20,xy);printf("%s",cCliente->nomeProduto);  // Mostra o nome do produto
+					gotoxy(41,xy);printf("%d",cCliente->quantidade);  // Mostra a quantidade de produtos
+					gotoxy(63,xy);printf("%0.2lf",cCliente->valorProduto);  // Mostra o valor do produto em Kg
+					cCliente = cCliente->proximo;   // Mostra o proximo produto
+					xy++;
+			}
+			printf("\n\n*                                                                         *\n");
+			printf("***************************************************************************\n\n");
+			FormPag:
+			printf("\n\nForma de pagamento?\n");    // Informa a forma de Pagamento
+			printf("1 - Dinheiro\n");
+			printf("2 - Cartao\n\n");
+			formaPag = getch();   // Recebe a opção pressionada no teclado de forma automatica
+			switch(formaPag)   
+			{
+				case '1':     // Dinheiro
+						printf("Introduza o valor: R$ ");     // Introduza o Valor ao caixa para o pagamento
+						valCliente:   // Função de retorno
+						scanf("%lf",&valorCliente);   // Valor que será dado ao operador de caixa
+						if(valorCliente < novaVenda->totalCompra)     // Caso a quantia seja inferior a compra mostrará menssagem de erro
+						{
+							printf("\n\nValor da compra: R$ %0.2lf\n",novaVenda->totalCompra);    // Valor total da compra
+							printf("Valor introduzido pelo cliente: R$ %0.2lf",valorCliente);   // Valor que o cliente deu ao operador de caixa
+							printf("\n\nIntroduza o valor novamente: ");   // Introduza um valor maior ou igual ao valor total da compra
+							goto valCliente;  // Função de direcionamento
+						}
+						saldoCaixa += valorCliente;  // Realiza adição do valor do cliente ao caixa
+						troco = valorCliente - novaVenda->totalCompra;  // Retorna o troco ao cliente
+						saldoCaixa -= troco;   // Saldo atual do caixa
+						printf("\n\nTroco: R$ %0.2lf",troco);   // Mostra o troco do cliente
+						printf("\nSaldo em caixa: R$ %0.2lf",saldoCaixa);   // Mostra o saldo em caixa atual
+					    printf("\n\n(Press Enter to continue)");
+					    trocoGlobal = troco;    // Introduz o troco a outra variavel trocoGlobal
+					    totalGlobal = novaVenda->totalCompra;  // Introduz o valor total da compra a outra variavel totalGlobal
+					    if(inicioVenda == NULL)   // Caso seja a primeira venda do dia
+						{
+							inicioVenda = novaVenda;  // Introduz ao relatoria do dia "inicioVenda"
+						}else{
+							while(auxVenda->proximo != NULL)  // Loop de repetição: Caso tenha outras vendas percorre até o final
+							{
+								auxVenda = auxVenda->proximo;   // Adiciona a nova venda efetuada no relatório de venda no final dela
+							}
+							auxVenda = novaVenda;  // Relatório recebe a venda
+						}
+						getch();  // Captação de tecla automatica
+						notaVendaCliente();  // Emite o Comprovante de venda do cliente (Forma de Pagamento: DINHEIRO)
+				break;
+				case '2':   // Opção de pagamento em cartão: DEBITO e CRÉDITO
+						printf("3 -> Cartao de Debito\n");  
+						printf("4 -> Cartao de Credito\n");
+						DebOuCred:
+						c = getch();  // Captação de Tecla automatica
+						switch(c)
+						{
+							case '3':   // DEBITO
+									printf("\nIMPORTANTE: Digite o numero do cartao contendo 16 digitos \nseparados por espaco. Ex: 0000 0000 0000 0000");
+									printf("\n\nDigite o numero do cartao: ");   // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
+									Card:    // Função de retorno
+									fflush(stdin);  // Limpeza de Buffer do teclado
+									fgets(cartaoDebito,sizeof(cartaoDebito),stdin);   // Recebe o numero de cartão de debito do cliente
+									fflush(stdin);  // Limpeza de Buffer do teclado
+									cartaoDebito[strcspn(cartaoDebito,"\r\n")] = '\0';  // Verifica o final do cartão informado e coloca um inidicador nulo no final
+									tamanho = strlen(cartaoDebito);  // verifica o tamanho do cartão informado
+									if(tamanho>19)   // Caso o cartão tenha menos digitos exigidos ele pedirá que introduza novamente
+									{
+										printf("\nCartao digitado com mais de 16 digitos.");  // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
+										printf("\nDigite o numero do cartao novamente: ");  // Digite novamente
+										goto Card;  // Função de direcionamento
+									}else if(tamanho<19){  // Caso o numero do cartão seja maior que o exigido ele pedirá que informe outro novamente
+										printf("\nCartao digitado com menos de 16 digitos.");  // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
+										printf("\nDigite o numero do cartao novamente: ");   // Digite novamente
+										goto Card;  // Função de direcionamento
+									}else{
+										fflush(stdin);  // Limpeza de Buffer do teclado
+										printf("Digite a senha(SOMENTE DIGITOS): ");   // Pede para digitar a senha
+										scanf("%d",&senhaDebito);  // Digite a senha do cartão de debito
+										printf("\nPagamento efetuado");
+										printf("\n\n(Press enter to continue)");
+										totalGlobal = novaVenda->totalCompra;   // Introduz o valor total em uma outra variavel totalGlobal
+									    if(inicioVenda == NULL)   // Caso seja a primeira venda do dia , será adicionado esta venda no Relatório de vendas do Dia
+										{
+											inicioVenda = novaVenda;   // Adiciona a venda no relatório de vendas do dia
+										}else{
+											while(auxVenda->proximo != NULL)  // Loop de repetição: Caso ja tenha tido outras venda, percorre o relatório todo e entao adiciona a venda no final do relatório
+											{
+												auxVenda = auxVenda->proximo;  // Percorre todo o relatório até o final
+											} 
+											auxVenda = novaVenda; // Adiciona a nova venda no final do relatório de vendas do dia
+										}
+										getch();  // Captação de tecla automatica
+										notaVendaDebito();  // Mostra o comprovante de venda do cliente     ( forma de pagamento: DEBITO)
+									}
+							break;
+						
+							case '4':   // CRÉDITO
+									printf("\nIMPORTANTE: Digite o numero do cartao contendo 16 digitos \nseparados por espaco. Ex: 0000 0000 0000 0000");
+									printf("\n\nDigite o numero do cartao: ");   // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
+									cardCredito::    // Função de retorno
+									fflush(stdin);  // Limpeza de Buffer do teclado
+									fgets(cartaoDebito,sizeof(cartaoDebito),stdin);   // Recebe o numero de cartão de debito do cliente
+									fflush(stdin);  // Limpeza de Buffer do teclado
+									cartaoDebito[strcspn(cartaoDebito,"\r\n")] = '\0';  // Verifica o final do cartão informado e coloca um inidicador nulo no final
+									tamanho = strlen(cartaoDebito);  // verifica o tamanho do cartão informado
+									if(tamanho>19)   // Caso o cartão tenha menos digitos exigidos ele pedirá que introduza novamente
+									{
+										printf("\nCartao digitado com mais de 16 digitos.");  // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
+										printf("\nDigite o numero do cartao novamente: ");  // Digite novamente
+										goto cardCredito;  // Função de direcionamento
+									}else if(tamanho<19){  // Caso o numero do cartão seja maior que o exigido ele pedirá que informe outro novamente
+										printf("\nCartao digitado com menos de 16 digitos.");  // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
+										printf("\nDigite o numero do cartao novamente: ");   // Digite novamente
+										goto cardCredito;  // Função de direcionamento
+									}else{
+										fflush(stdin);  // Limpeza de Buffer do teclado
+										printf("Digite a senha(SOMENTE DIGITOS): ");   // Pede para digitar a senha
+										scanf("%d",&senhaDebito);  // Digite a senha do cartão de debito
+										printf("\nPagamento efetuado");
+										printf("\n\n(Press enter to continue)");
+										totalGlobal = novaVenda->totalCompra;   // Introduz o valor total em uma outra variavel totalGlobal
+									    if(inicioVenda == NULL)   // Caso seja a primeira venda do dia , será adicionado esta venda no Relatório de vendas do Dia
+										{
+											inicioVenda = novaVenda;   // Adiciona a venda no relatório de vendas do dia
+										}else{
+											while(auxVenda->proximo != NULL)  // Loop de repetição: Caso ja tenha tido outras venda, percorre o relatório todo e entao adiciona a venda no final do relatório
+											{
+												auxVenda = auxVenda->proximo;  // Percorre todo o relatório até o final
+											} 
+											auxVenda = novaVenda; // Adiciona a nova venda no final do relatório de vendas do dia
+										}
+										getch();  // Captação de tecla automatica
+										notaVendaCredito();  // Mostra o comprovante de venda do cliente     ( forma de pagamento: CREDITO)
+									}
+							break;
+							
+							default: printf("\n\nOpcao Invalida.   Tente novamente."); goto DebOuCred; break;  // Menssagem de Erro
+						}
+				break;
+				
+				default: printf("\n\nOpcao Invalida.   Tente novamente."); goto FormPag; break;   // Menssagem de Erro
+			}
+}
+
+void notaVendaCliente()    // Comprovante de venda do cliente   (DINHEIRO)
+{
+	Produtos *cCliente = itemVendaInicio;   // Variavel recebe todo conteudo contido na lista itemVendaInicio
+	int y = 11;
+	system("CLS");  // Função de limpeza de tela
+	printf("***************************************************************************\n");
+	printf("*                                                                         *\n");
+	printf("*                             NewHorizon Market                           *\n");
+	printf("*                                                                         *\n");
+	printf("*                                                                         *\n");
+	printf("*                           COMPROVANTE DE COMPRA                         *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	while(cCliente!=NULL)
+	{
+		gotoxy(5,y);printf("%s",cCliente->codProduto);  // Mostra o codigo do produto
+		gotoxy(20,y);printf("%s",cCliente->nomeProduto);  // Mostra o nome do produto
+		gotoxy(41,y);printf("%d",cCliente->quantidade);  // Mostra a quantidade de produto
+		gotoxy(63,y);printf("%0.2lf",cCliente->valorProduto); // Mostra o valor do produto por Kg
+		cCliente = cCliente->proximo;  // Mostra o proximo produto
+		y++;
+	}
+	printf("\n\n*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("*                                                                         *\n");
+	printf("*     Forma de Pagamento: Dinheiro                 TOTAL: R$              *\n");
+	printf("*                                                  TROCO: R$              *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n\n");
+	printf("           *************************************************");
+	printf("\n          *                                               *");
+	printf("\n          *     Obrigado , NewHorizon Market agradece     *");
+	printf("\n          *         sua presenca, volte sempre.           *");
+	printf("\n          *                                               *");
+	printf("\n          *************************************************\n\n");
+	printf("(Press enter to continue)");
+	for(int x=0;x<=3;x++)
+	{
+		y++;
+	}
+	gotoxy(63,y); printf("%0.2lf",totalGlobal);   // Mostra o valor total da compra do cliente
+	y++;
+	gotoxy(63,y); printf("%0.2lf",trocoGlobal);   // MOstra o troco do cliente
+	getch();   // Captação de tecla automatica
+	menu();
+}
+
+void notaVendaDebito()   // Comprovante de venda do Cliente  (DEBITO)
+{
+	Produtos *cCliente = itemVendaInicio;   // Variavel recebe todo conteudo contido na lista itemVendaInicio
+	int y = 11;
+	system("CLS");  // Função de limpeza de tela
+	printf("***************************************************************************\n");
+	printf("*                                                                         *\n");
+	printf("*                             NewHorizon Market                           *\n");
+	printf("*                                                                         *\n");
+	printf("*                                                                         *\n");
+	printf("*                           COMPROVANTE DE COMPRA                         *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	while(cCliente!=NULL)
+	{
+		gotoxy(5,y);printf("%s",cCliente->codProduto);  // Mostra o codigo do produto
+		gotoxy(20,y);printf("%s",cCliente->nomeProduto);  // Mostra o nome do produto
+		gotoxy(41,y);printf("%d",cCliente->quantidade);  // Mostra a quantidade de produto
+		gotoxy(63,y);printf("%0.2lf",cCliente->valorProduto); // Mostra o valor do produto por Kg
+		cCliente = cCliente->proximo;  // Mostra o proximo produto
+		y++;
+	}
+	printf("\n\n*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("*                                                                         *\n");
+	printf("*     Forma de Pagamento: Debito                   TOTAL: R$              *\n");
+	printf("*                                                                         *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n\n");
+	printf("           *************************************************");
+	printf("\n          *                                               *");
+	printf("\n          *     Obrigado , NewHorizon Market agradece     *");
+	printf("\n          *         sua presenca, volte sempre.           *");
+	printf("\n          *                                               *");
+	printf("\n          *************************************************\n");
+	for(int x=0;x<=3;x++)
+	{
+		y++;
+	}
+	gotoxy(63,y); printf("%0.2lf",totalGlobal);  // Mostra o valor total da compra do cliente
+	getch();   // Captação de tecla automatica
+	menu();
+}
+
+void notaVendaCredito()   // Comprovante de venda do cliente  (CREDITO)
+{
+	Produtos *cCliente = itemVendaInicio;   // Variavel recebe todo conteudo contido na lista itemVendaInicio
+	int y = 11;
+	system("CLS");  // Função de limpeza de tela
+	printf("***************************************************************************\n");
+	printf("*                                                                         *\n");
+	printf("*                             NewHorizon Market                           *\n");
+	printf("*                                                                         *\n");
+	printf("*                                                                         *\n");
+	printf("*                           COMPROVANTE DE COMPRA                         *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor(Kg):   \n");
+	while(cCliente!=NULL)
+	{
+		gotoxy(5,y);printf("%s",cCliente->codProduto);  // Mostra o codigo do produto
+		gotoxy(20,y);printf("%s",cCliente->nomeProduto);  // Mostra o nome do produto
+		gotoxy(41,y);printf("%d",cCliente->quantidade);  // Mostra a quantidade de produto
+		gotoxy(63,y);printf("%0.2lf",cCliente->valorProduto); // Mostra o valor do produto por Kg
+		cCliente = cCliente->proximo;  // Mostra o proximo produto
+		y++;
+	}
+	printf("\n\n*                                                                         *\n");
+	printf("***************************************************************************\n");
+	printf("*                                                                         *\n");
+	printf("*     Forma de Pagamento: Credito                  TOTAL: R$              *\n");
+	printf("*                                                                         *\n");
+	printf("*                                                                         *\n");
+	printf("***************************************************************************\n\n");
+	printf("           *************************************************");
+	printf("\n          *                                               *");
+	printf("\n          *     Obrigado , NewHorizon Market agradece     *");
+	printf("\n          *         sua presenca, volte sempre.           *");
+	printf("\n          *                                               *");
+	printf("\n          *************************************************\n");
+	for(int x=0;x<=3;x++)
+	{
+		y++;
+	}
+	gotoxy(63,y); printf("%0.2lf",totalGlobal);   // Mostra o valor total da compra do cliente
+	getch();   // Captação de tecla automatica
+	menu();
+}
+
+// ----------------- Menu Administrativo -----------------
+
+void administrativeSystem()    // Menu Principal Administativo
+{
+    char op2;
+    do{   // Loop de repetição
+	    system("CLS");   // Função de limpeza de tela
+	    printf("**********************************************************");
+	    printf("\n*               Sistema de Administrativo                *");
+	    printf("\n*                                                        *");
+	    printf("\n*   1 - Saldo de Vendas do Dia                           *");
+	    printf("\n*   2 - Adicionar Produtos                               *");
+	    printf("\n*   3 - Exibir Produtos                                  *");
+	    printf("\n*   4 - Iniciar Produtos                                 *");
+	    printf("\n*   5 - Gravar Produtos                                  *");   // MENU
+	    printf("\n*                                                        *");
+	    printf("\n*                                                        *");
+		printf("\n*                                                        *");
+	    printf("\n*   9 - Sair                                             *");
+	    printf("\n*                                                        *");
+	    printf("\n**********************************************************");
+	    printf("\n*   Opcao:                                               *");
+	    printf("\n**********************************************************");
+	    gotoxy(12,15); op2 = getch();   // Captação de tecla
+	    switch(op2)
+	    {
+	        case '1': saldoDia(); break;    // Função de Relatorio de vendas do Dia 
+
+	        case '2': adicionarProdutos();    break;   // Função de Registro de produtos
+
+	        case '3': ExibeProdutosAdmin();  getch(); break;   // Função de Exibição dos produtos registrados
+
+	        case '4': lerParaStruct();	break;  // Realização leitura de informações em arquivo para estrutura de dados
+
+	        case '5': gravarArquivo();	break;  // Grava o registro dos produtos em arquivo
+
+	        case '9': retornar(); break;   // Função de retorno para Menu Principal
+
+	        default: printf("\n\nOpcao invalida.  (Press enter to continue)"); getch(); break;   // Menssagem de Erro
+	    }
+	}while(op2 != '5');  // Loop de repetição será finalizado quando a tecla "5" for pressionada
+}
+ 
+void saldoDia()   // Função de Relatorio de vendas do dia
+{  
+	Venda *aux = inicioVenda;   // Variavel auxiliar recebe todo conteudo contido no inicio da venda
+	int y=6,x=1;
+	
+    system("CLS");   // Função de Limpeza de tela
+    printf("*********************************************************************");
+    printf("\n*                        Saldos do Dia                              *");
+    printf("\n*                                                                   *");
+    printf("\n*   N. Venda:        Quantidade de Produtos:        Valor:          *");
+    printf("\n*                                                                   *");
+	while(aux!=NULL)
+	{
+	 	gotoxy(5,y); printf("%d",x);    // Mostrará o numero da venda por ordem 
+	 	gotoxy(22,y); printf("%d",aux->quantidadeProduto);   // Mostrará a quantidade de produtos vendidos
+	 	gotoxy(53,y); printf("R$ %0.2lf",aux->totalCompra);   // Mostrará o valor total da venda
+	 	x++;
+		y++;
+		aux = aux->proximo;   // Auxiliar irá mostrar o proximo produto
+	}
+    printf("\n*                                                                   *");
+    printf("\n*********************************************************************\n");
+    printf("\n(Press enter to continue)");
+	getch();   // Captação de tecla automatica
+}
+
+void adicionarProdutos()   // Função Registrar Produtos
+{
+    Produtos *novo = (Produtos*)malloc(sizeof(Produtos));   // Variavel para armazenamento do produto
+    novo->proximo = NULL;  // Informa que o proximo produtos da lista é numero
+	
+	system("CLS");
+	printf("*********************************************************************");
+	printf("\n*                                                                   *");
+	printf("\n*                       Adicionar Produtos                          *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*     Codigo do Produto:                                            *");
+	printf("\n*                                                                   *");
+	printf("\n*     Nome do Produto:                                              *");  // MENU
+	printf("\n*                                                                   *");
+	printf("\n*     Valor do produto(Kg):                                         *");
+	printf("\n*                                                                   *");
+	printf("\n*     Quantidade:                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*                                                                   *");
+	printf("\n*********************************************************************\n");
+	fflush(stdin);   // Limpeza de Buffer do teclado
+	gotoxy(26,6);gets(novo->codProduto);   // Recebe codigo do produto informado pelo funcionario
+	fflush(stdin);   // Limpeza de Buffer do teclado
+	gotoxy(24,8);gets(novo->nomeProduto);  // Recebe nome do produto informado pelo funcionario
+	gotoxy(30,10);printf("R$");
+	fflush(stdin);   // Limpeza de Buffer do teclado
+	gotoxy(33,10);scanf("%lf",&novo->valorProduto);  // Recebe valor do produto informado pelo funcionario
+	fflush(stdin);   // Limpeza de Buffer do teclado
+	gotoxy(19,12);scanf("%d",&novo->quantidade);  // Recebe quantidade do produto informado pelo funcionario
+	fflush(stdin);   // Limpeza de Buffer do teclado
+	
+	if(inicio == NULL){    // verifica se a Lista de produtos inicio é nulo caso seja
+            inicio = novo;    // adiciona o produto no inicio da lista 
+	}else{
+		Produtos *pAux = inicio;   // Cria um auxiliar para a lista de produtos inicio
+        while(pAux->proximo != NULL){     // Loop de repetição: Enquanto o auxiliar->proximo for diferente de nulo ele irá repetir
+        	pAux = pAux->proximo;	// auxiliar passa a ser a proxima posição 
+		}
+		pAux->proximo = novo;  // auxiliar-> proximo recebe o novo produto para registro
+	}
+	gotoxy(7,15);printf("Produto adicionado com sucesso!");   // Menssagem de registro com sucesso
+	gotoxy(1,19);printf("(Press enter to continue)");
+	
+	getch();  // Captação de tecla automatica
+}
+
+void ExibeProdutosAdmin()  // Função Exibir Produtos
+{
+	Produtos *aux = inicio;    // Variavel auxiliar recebe todo conteudo contido no inicio da lista de produtos
+	int y=5;
+
+	if(aux==NULL)   // Verifica se o auxicio é nulo
+	{
+		printf("Nao ha produtos cadastrados.");
+	}
+    system("CLS");   // Função de limpeza de tela
+	printf("***********************************************************************\n");
+    printf("                                                                       \n");
+	printf("    Codigo:        Nome:                Quantidade:           Valor:   \n");
+	printf("                                                                       \n");
+	while(aux!=NULL)
+	{		
+		gotoxy(5,y);printf("%s",aux->codProduto);  // Mostra o codigo do produto
+		gotoxy(20,y);printf("%s",aux->nomeProduto);  // Mostra o nome do produto
+		gotoxy(41,y);printf("%d",aux->quantidade);  // Mostra a quantidade de protuos
+		gotoxy(63,y);printf("%0.2lf",aux->valorProduto);  // Mostra o valor do produto
+		y++; 
+		aux=aux->proximo;  // Mostra o proximo produto
+	}
+    printf("                                                                       \n");
+    printf("\n***********************************************************************\n\n");
+    printf("(Press enter to continue)");
+    getch();   // Captação de tecla automatica
+}
+
+// ------------------- Funcionarios -------------------
+
+void menuFuncionario()  // Menu principal se seguranção
+{
+
+    char op;
+
+    do   // Loop de repetição
+    {
+        fflush(stdin);
+        system("cls");  // Função de limpeza de tela
+        printf("******************************************************");
+        printf("\n*                 NewHorizon Market                  *");
+        printf("\n*                                                    *");
+        printf("\n*      1 - Cadastrar Funcionario                     *");
+        printf("\n*      2 - Listar Funcionarios                       *");
+        printf("\n*      3 - Pesquisar Funcionario                     *");
+        printf("\n*                                                    *");   // MENU
+        printf("\n*                                                    *");
+        printf("\n*      5 - Sair                                      *");
+        printf("\n*                                                    *");
+        printf("\n******************************************************");
+        printf("\n*      Opcao:                                        *");
+        printf("\n******************************************************");
+        gotoxy(15,12); op = getch();    // Captação de tecla automática 
+		switch(op)
+        {
+
+            case '1': cadastraUsuario(); break;     // Direciona para cadastro de funcionarios
+
+            case '2': autorizaLogin();   // Direciona para Listagem de funcionarios
+
+            case '3': PesquisaFuncionario(); break;   // Função de pesquisa de funcionarios
+
+  	    	case '5': retornar(); break;  // Função de retorno para menu Principal
+
+            default: gotoxy(15,10); printf("Opcao Invalida\n\nPressione Enter para continuar!"); break;    // Menssagem de Erro 
+        }
+    }while(op != 5);   // Loop de repetição será finalizado assim que for pressionado a tecla "5"
+}
+
+void cadastraUsuario()  // Função de cadastro de funcionarios
+{
+	Login cUsers;     // Estrutura de dados para armazenamento
+
+	FILE *fp;    // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","ab"))==NULL)   // Realiza abertura de arquivo caso ponteiro não seja nulo
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+		exit(1);
+	}
+	system("CLS");   // Função de limpeza
+	printf("****************************************************\n");
+	printf("               Cadastro de usuarios                 \n");
+	printf("                                                    \n");
+	printf("      Nome:                                         \n");
+	printf("                                                    \n");
+	printf("      Dat. Nasc.:                                   \n");
+	printf("                                                    \n");
+	printf("      telefone:                                     \n");
+	printf("                                                    \n");   // MENU
+	printf("      E-mail:                                       \n");
+	printf("                                                    \n");
+	printf("      Usuario:                                      \n");
+	printf("                                                    \n");
+	printf("      Senha:                                        \n");
+	printf("                                                    \n");
+	printf("                                                    \n");
+	printf("                                                    \n");
+	printf("****************************************************\n");
+	fflush(stdin);
+	gotoxy(13,4);gets(cUsers.nomeUsuario);   // Receve nome do funcionario
+	fflush(stdin);
+	gotoxy(19,6);gets(cUsers.dataNascimento);   // Receve data de nascimento do funcionario
+	fflush(stdin);
+	gotoxy(17,8);gets(cUsers.telefone);    // Receve telefone do funcionario
+	fflush(stdin);
+	gotoxy(15,10);gets(cUsers.email);    // Receve email do funcionario
+	fflush(stdin);
+	gotoxy(16,12);gets(cUsers.usuarioCadastrado);   // Recebe nome de usuario digitado pelo funcionario
+	fflush(stdin);
+	gotoxy(14,14);gets(cUsers.senhaCadastrada);   // Recebe a senha de usuario digitado pelo funcionario
+	fflush(stdin);
+	gotoxy(7,16);printf("Usuario cadastrado com sucesso!");    // Menssagem de cadastro concluido
+	fflush(stdout);
+	gotoxy(1,20);printf("(Press enter to continue)");
+
+	fwrite(&cUsers,sizeof(Login),1,fp);     // Escreve informações do funcionario em arquivo
+	fclose(fp);   // Fecha o arquivo
+	menu();  // Direciona para o menu
+}
+
+void MostraLogin()   // Função Login
+{
+	Login cUsers;   // Variavel de estrura de dados
+	char usuario[12];   // variavel para digitação de usuario pelo funcionario
+    char senha[8];   // variavel para digitação de senha pelo funcionario
+    int i=0,x=3;
+
+	FILE *fp;  // Cria ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)    // Verifica se arquivo foi aberto caso não seja nulo
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)   // Realiza leitura dos dados para cUsers
+	{
+	}
+    fclose(fp);  // Fecha arquivo
+    do
+	{
+		system("CLS");
+		printf("******************************************************\n");
+		printf("                       Login                          \n");
+		printf("                                                      \n");
+		printf("      Usuario:                                        \n");     // MENU
+		printf("      Senha:                                          \n");
+		printf("                                                      \n");
+		printf("******************************************************\n");
+		fflush(stdin);   // Limpeza de buffer do teclado
+		gotoxy(16,4); gets(usuario);   // Recebe usuario do funcionario
+		fflush(stdin);   // Limpeza de buffer do teclado
+		gotoxy(14,5); gets(senha);     // recebe senha do funcionario
+		fflush(stdin);   // Limpeza de buffer do teclado
+
+		usuario[strcspn(usuario,"\r\n")] = '\0';    // verifica o usuario digitado e então coloca um final nulo no usuario
+		senha[strcspn(senha,"\r\n")] = '\0';    // verifica a senha digitada e então coloca um final nulo na senha
+
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))     // Nesta parte será realizado uma compração de usuario com o usuario cadastrado no sistema e uma comparação da sennha com a senha cadastrada no sistema
+		{
+			menu();     // Caso a compração for verdadeira onde o usuario e senha digitados são identicas as do sistema , entao será direcionado para o menu
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!\n\n");   // Menssagem de erro
+		}
+		printf("Restam %d tentativas\t\tPressione qualquer tecla para continuar!",x--);   // Informação de quantidade de tentativas restantes
+		getch();
+		i++;
+	}while(i<=3);   // Loop de repetição  finalição depois de repetir 3 vezes
+	exit(1);  // Comando de fechamento do sistema de forma obrigatória
+}
+
+void telaLogin()   // Função de validação
+{
+	Login cUsers;    // Variavel de estrutura de dados
+	char usuario[12];   // variavel para digitação de usuario pelo funcionario
+    char senha[8];    // variavel para digitação de senha pelo funcionario
+    int i = 4,x=3;
+
+	FILE *fp;  // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)   // Verifica se arquivo foi aberto caso não seja nulo
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)    // Realiza leitura dos dados para cUsers
+	{
+
+	}
+    fclose(fp);  // Fecha o arquivo
+    do{
+	    system("CLS");
+		printf("******************************************************\n");
+		printf("                       Login                          \n");
+		printf("                                                      \n");
+		printf("      Usuario:                                        \n");     //  MENU
+		printf("      Senha:                                          \n");
+		printf("                                                      \n");
+		printf("******************************************************\n");
+		fflush(stdin);    // Limpeza de buffer do teclado
+		gotoxy(16,4); gets(usuario);  // Recebe usuario do funcionario
+		fflush(stdin);    // Limpeza de buffer do teclado
+		gotoxy(14,5); gets(senha);    // Recebe senha do funcionario
+		fflush(stdin);    // Limpeza de buffer do teclado
+	
+		usuario[strcspn(usuario,"\r\n")] = '\0';    // verifica o usuario digitado e então coloca um final nulo no usuario
+		senha[strcspn(senha,"\r\n")] = '\0';    // verifica a senha digitada e então coloca um final nulo na senha
+	
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))    // Nesta parte será realizado uma compração de usuario com o usuario cadastrado no sistema e uma comparação da sennha com a senha cadastrada no sistema
+		{
+			menu();   // Caso a compração for verdadeira onde o usuario e senha digitados são identicas as do sistema , entao será direcionado para o menu
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!   (Pressione qualquer tecla)\n\n");    // Menssagem de Erro
+		}
+		printf("Tentativas restantes %d",x);   // Informação de quantidade de tentativas restantes
+		--x;
+		--i;
+		getch();	
+	}while(i>3);  // Loop de repetição  finalição depois de repetir 3 vezes
+	exit(1);    // Comando de fechamento do sistema de forma obrigatória
+}
+
+void autorizaLogin()    // Função de Autorização
+{
+	Login cUsers;   // Variavel de estrutura de dados
+	char usuario[12];   // Recebe usuario digitado pelo funcionario
+    char senha[8];   // Recebe senha digitada pelo funcionario
+    int i = 4, x = 3;
+
+	FILE *fp;    // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)   // Verifica se o arquivo foi aberto caso não seja nulo
+	{
+		printf("Problema na abertura do arquivo.\n\n");     // Menssagem de erro
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)    // Loop de repetição: realiza leitura de informações para cUsers
+	{
+
+	}
+    fclose(fp);   // Fecha arquivo
+
+	do{
+		system("CLS");
+		printf("********************************************************\n");
+		printf("                       Login                            \n");
+		printf("                                                        \n");
+		printf("      Usuario:                                          \n");
+		printf("      Senha:                                            \n");  // MENU
+		printf("                                                        \n");
+		printf("********************************************************\n");
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gotoxy(16,4); gets(usuario);   // Recebe usuario do funcionario
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gotoxy(14,5); gets(senha);  // Recebe senha do funcionario
+		fflush(stdin);  // Limpeza de Buffer do teclado
+	
+		usuario[strcspn(usuario,"\r\n")] = '\0';   // verifica o usuario digitado e então coloca um final nulo no usuario
+		senha[strcspn(senha,"\r\n")] = '\0';   // verifica a senha digitado e então coloca um final nulo na senha
+	  
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))     // Nesta parte será realizado uma compração de usuario com o usuario cadastrado no sistema e uma comparação da sennha com a senha cadastrada no sistema
+		{
+			listarFuncionarios();    // Caso a compração for verdadeira onde o usuario e senha digitados são identicas as do sistema , entao será direcionado para o ListaFuncionarios()
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!   (Pressione qualquer tecla)\n\n");    // Menssagem de Erro
+		}
+		printf("Tentativas restantes %d",x);   // Quantidade de tentativas restantes
+		getch();
+		--x;
+		--i;
+		getch();	// Captação de teclas automatica
+	}while(i>3);   // Loop de repetição  finalição depois de repetir 3 vezes
+	menu();   
+}
+
+void autorizaCaixa()   // Função de Autorização para sistema de caixa
+{
+	Login cUsers;   // Variavel de estrutura de dados
+	char usuario[12];   // Recebe usuario digitado pelo funcionario
+    char senha[8];   // Recebe senha digitada pelo funcionario
+    int i = 4, x = 3;
+
+	FILE *fp;    // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)   // Verifica se o arquivo foi aberto caso não seja nulo
+	{
+		printf("Problema na abertura do arquivo.\n\n");     // Menssagem de erro
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)    // Loop de repetição: realiza leitura de informações para cUsers
+	{
+
+	}
+    fclose(fp);   // Fecha arquivo
+
+	do{
+		system("CLS");
+		printf("********************************************************\n");
+		printf("                       Login                            \n");
+		printf("                                                        \n");
+		printf("      Usuario:                                          \n");
+		printf("      Senha:                                            \n");  // MENU
+		printf("                                                        \n");
+		printf("********************************************************\n");
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gotoxy(16,4); gets(usuario);   // Recebe usuario do funcionario
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gotoxy(14,5); gets(senha);  // Recebe senha do funcionario
+		fflush(stdin);  // Limpeza de Buffer do teclado
+	
+		usuario[strcspn(usuario,"\r\n")] = '\0';   // verifica o usuario digitado e então coloca um final nulo no usuario
+		senha[strcspn(senha,"\r\n")] = '\0';   // verifica a senha digitado e então coloca um final nulo na senha
+	  
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))     // Nesta parte será realizado uma compração de usuario com o usuario cadastrado no sistema e uma comparação da sennha com a senha cadastrada no sistema
+		{
+			DesingCaixa();    // Caso a compração for verdadeira onde o usuario e senha digitados são identicas as do sistema , entao será direcionado para o DesingCaixa()
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!   (Pressione qualquer tecla)\n\n");    // Menssagem de Erro
+		}
+		printf("Tentativas restantes %d",x);   // Quantidade de tentativas restantes
+		getch();
+		--x;
+		--i;
+		getch();	// Captação de teclas automatica
+	}while(i>3);   // Loop de repetição  finalição depois de repetir 3 vezes
+	menu();    
+}
+
+void autorizaAdministrativo()    // Função de Autorização para sistema administrativo
+{
+	Login cUsers;   // Variavel de estrutura de dados
+	char usuario[12];   // Recebe usuario digitado pelo funcionario
+    char senha[8];   // Recebe senha digitada pelo funcionario
+    int i = 4, x = 3;
+
+	FILE *fp;    // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)   // Verifica se o arquivo foi aberto caso não seja nulo
+	{
+		printf("Problema na abertura do arquivo.\n\n");     // Menssagem de erro
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)    // Loop de repetição: realiza leitura de informações para cUsers
+	{
+
+	}
+    fclose(fp);   // Fecha arquivo
+
+	do{
+		system("CLS");
+		printf("********************************************************\n");
+		printf("                       Login                            \n");
+		printf("                                                        \n");
+		printf("      Usuario:                                          \n");
+		printf("      Senha:                                            \n");  // MENU
+		printf("                                                        \n");
+		printf("********************************************************\n");
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gotoxy(16,4); gets(usuario);   // Recebe usuario do funcionario
+		fflush(stdin);  // Limpeza de Buffer do teclado
+		gotoxy(14,5); gets(senha);  // Recebe senha do funcionario
+		fflush(stdin);  // Limpeza de Buffer do teclado
+	
+		usuario[strcspn(usuario,"\r\n")] = '\0';   // verifica o usuario digitado e então coloca um final nulo no usuario
+		senha[strcspn(senha,"\r\n")] = '\0';   // verifica a senha digitado e então coloca um final nulo na senha
+	  
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))     // Nesta parte será realizado uma compração de usuario com o usuario cadastrado no sistema e uma comparação da sennha com a senha cadastrada no sistema
+		{
+			administrativeSystem();    // Caso a compração for verdadeira onde o usuario e senha digitados são identicas as do sistema , entao será direcionado para o aministrativeSystem()
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!   (Pressione qualquer tecla)\n\n");    // Menssagem de Erro
+		}
+		printf("Tentativas restantes %d",x);   // Quantidade de tentativas restantes
+		getch();
+		--x;
+		--i;
+		getch();	// Captação de teclas automatica
+	}while(i>3);   // Loop de repetição  finalição depois de repetir 3 vezes
+	menu();    
+}
+
+void autorizaSeguranca()   // Função de Autorização para sistema de segurança
+{
+	Login cUsers;
+	char usuario[12];
+    char senha[8];
+    int i = 4, x = 3;
+
+	FILE *fp;
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)
+	{
+		printf("Problema na abertura do arquivo.\n\n");
+	}
+	printf("\n\n");
+	while(fread(&cUsers,sizeof(Login),1,fp)==1)
+	{
+
+	}
+    fclose(fp);
+
+	do{
+		system("CLS");
+		printf("****************************************************\n");
+		printf("                       Login                        \n");
+		printf("                                                    \n");
+		printf("      Usuario:                                      \n");
+		printf("      Senha:                                        \n");
+		printf("                                                    \n");
+		printf("****************************************************\n");
+		fflush(stdin);
+		gotoxy(16,4); gets(usuario);
+		fflush(stdin);
+		gotoxy(14,5); gets(senha);
+		fflush(stdin);
+	
+		usuario[strcspn(usuario,"\r\n")] = '\0';
+		senha[strcspn(senha,"\r\n")] = '\0';
+	
+		if((strcmp(cUsers.usuarioCadastrado,usuario)==0) && (strcmp(cUsers.senhaCadastrada,senha)==0))
+		{
+			menuFuncionario();
+		}else{
+			printf("\n\nUsuario ou Senha Invalido!   (Pressione qualquer tecla)\n\n");
+		}
+		printf("Tentativas restantes %d",x);
+		getch();
+		--x;
+		--i;
+		getch();	 // Captação de teclas automatica
+	}while(i>3);   // Loop de repetição  finalição depois de repetir 3 vezes
+	menu();
+}
+
+void PesquisaFuncionario()    // Função de Pesquista de funcionarios
+{
+	Login cUsers;   // Variavel de estrutura de dados
+	char usuario[12];   // Recebe usuario digitado pelo funcionario
+
+	FILE *fp;   // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)  // Verifica se foi aberto o arquivo caso não seja nulo
+	{
+		printf("Problema na abertura do arquivo!\n");   // Menssagem de erro
+	}else{ 
+		system("CLS");   // Função de limpeza de tela
+		printf("---> Pesquisa Funcionario <---\n\n");
+		fflush(stdin);   // Limpeza de Buffer do teclado
+		printf("Usuario: ");
+		gets(usuario);   // Recebe usuario digitado pelo funcionario
+		printf("\n\n");
+		while(fread(&cUsers,sizeof(Login),1,fp)==1)    // Loop de repetição e transferencia de arquivos para cUsers
+		{
+			if(strcmp(cUsers.usuarioCadastrado,usuario)==0)    // Realiza com paração do usuario digitado pelo funcionario com o usuario cadastrado no sistema
+			{
+				printf("---------------------------------\n");
+				printf("Usuario: %s existente",cUsers.usuarioCadastrado);     // Mostra se o funcionario existe
+				printf("\n---------------------------------\n\n");
+			}else{
+				printf("---------------------------------\n");
+				printf("Usuario: %s inexistente",usuario);     // Mostra se o funcionario não existe
+				printf("\n---------------------------------\n\n");
+			}
+		}
+	}
+	getch();   // Captação de teclas automatica
+}
+
+void listarFuncionarios()   // Função para listagem de funcionarios
+{
+	Login cUsers;  // Variavel de estrutura de dados
+	FILE *fp;  // Cria um ponteiro do tipo arquivo
+
+	if((fp = fopen("Usuarios.dat","rb"))==NULL)   // Verifica se o arquivo foi aberto caso seja não seja nulo
+	{
+		printf("Problema na abertura do arquivo!\n");   // menssagem de erro
+	}else{
+		printf("\n\n");
+		while(fread(&cUsers,sizeof(Login),1,fp)==1)     // Loop de repetição e leitura do arquivo para variavel cUsers 
+		{
+			printf("******************************************************\n");
+			printf("                                                      \n");
+		   	printf("                 Usuario: %s                          \n",cUsers.usuarioCadastrado);    // Mostrara o Usuario do funcionario
+			printf("                                                      \n");
+			printf("      Nome: %s                                        \n",cUsers.nomeUsuario);   // Mostrara o nome do funcionario
+			printf("      Aniversario: %s                                 \n",cUsers.dataNascimento);  // Mostrara a data do funcionario
+			printf("      Telefone: %s                                    \n",cUsers.telefone);  // Mostrara o telefone do funcionario
+			printf("      E-mail: %s                                      \n",cUsers.email);   // Mostrara o email do funcionario
+			printf("                                                      \n");
+			printf("******************************************************\n");
+		}
+	}
+	printf("\n\nPressione qualquer tecla para continuar.");   
+	getch();   // Leitura de qualquer tecla do teclado
+	menu();   // Direcionamento do funcionario para o menu principal
+}
+
+// ------------------- Utilizades -------------------
+void lerParaStruct()   // Função de leitura informações contidas em arquivo para estruturas de dadosss
+{
+	Produtos pProduto;  // Variavel para armazenamento de dados vindo do arquvio
+	FILE *fp;  // Cria ponteiro do tipo arquivo
+	fp = fopen("Produtos.dat", "rb");   // abertura do arquivo
+	if(fp == NULL){   // Verifica se o arquivo foi abertuo ou não
+		printf("Problemas na criacao do arquivo\n");
+		return ;
+	}
+	while(!feof(fp)){    // Loop de repetição: irá repetir enquanto não for o final do arquivo
+		int lido = fread(&pProduto, sizeof(Produtos),1,fp);    // leitura do arquivo
+		if(lido == 1){
+			Produtos *aux = (Produtos*) malloc(sizeof(Produtos));    // Cria um auxiliar com memoria dinâmina para transferencia dos dados para o auxiliar
+			strcpy(aux->codProduto, pProduto.codProduto);    // copia o codigo do produto de pProduto para aux
+			strcpy(aux->nomeProduto, pProduto.nomeProduto);   // copia o nome do produto de pProduto para aux
+			aux->quantidade = pProduto.quantidade;    // copia a quantidade de produto de pProduto para aux
+			aux->valorProduto = pProduto.valorProduto;   // copia o valor do produto de pProduto para aux
+			aux->proximo = inicio;  // auxiliar aponta para o inicio da lista principal
+			inicio = aux;  // lista principal recebe informações dos produtos contidos em auxiliar
+		}
+	}
+	fclose(fp);    // fecha o arquivo
+	gotoxy(12,15); printf("Leitura concluida.");   // menssagem de conclusão de leitura
+	getch();
+	administrativeSystem();   // nesta função irá direcionar para sistema administrativo
+}
+
+void gravarArquivo()    // Função de registro dos dados em arquivo
+{
+	Produtos *aux;    // Cria um auxiliar do tipo ponteiro 
+	FILE *fp;  // Cria um ponteiro para utilização de arquivo
+
+	if((fp = fopen("Produtos.dat","ab"))==NULL)   // Verifica abertura de arquivo , se o ponteiro de artura de arquivo é null
+	{
+		printf("Erro na abertura do arquivo.");
+		exit(1);
+	}
+	aux = inicio;   // aux recebe todo conteudo contido em inicio
+	while(aux!=NULL)   // loop de repetição enquanto for diferente de nulo
+	{
+		fwrite(&aux,sizeof(Produtos),1,fp);   // Escreve em arquivo informações dos produtos
+		aux = aux->proximo;  // aux pula para o proximo produto para adicionar no arquivo
+	}
+	fclose(fp);  // Finaliza arquivo
+	gotoxy(12,15); printf("Gravacao concluida.");    // Menssagem de gravação concluida
+}
+
+// ------------------- Saída -------------------
+
+void retornar()    // Função de retorno para outras funções
+{
+	char c;    // variavel para captação de tecla
+	system("CLS");  
+	printf("*************************************************");
+    printf("\n*               Retorno / Saida                 *");
+    printf("\n*                                               *");
+    printf("\n*      1 - Retornar Menu principal              *");     /// Menu de retorna
+    printf("\n*      2 - Fechar software                      *");
+    printf("\n*                                               *");
+    printf("\n*************************************************");
+    c = getch();    // Captação de tecla
+    switch(c)
+    {
+		case '1': MostraLogin(); break;    // Função de direcionamento para Login
+
+		case '2': sair(); break;   // Função de saída
+
+		default: printf("Opcao invalida.   (Press enter to continue!)"); getch(); break;   // Menssagem de erro
+	}
+}
+
+void sair()    // Função de despedida
+{
+    system("CLS");   // Função de limpeza de tela
+    printf("*************************************************");
+    printf("\n*                                               *");
+    printf("\n*     Obrigado , NewHorizon Market agradece     *");
+    printf("\n*         sua presenca, volte sempre.           *");    // Menssagem de despedida
+    printf("\n*                                               *");
+    printf("\n*************************************************\n");
+    exit(1);
+}
