@@ -393,7 +393,7 @@ void iniciaCompra()    // Função Compra
 							case '4':   // CRÉDITO
 									printf("\nIMPORTANTE: Digite o numero do cartao contendo 16 digitos \nseparados por espaco. Ex: 0000 0000 0000 0000");
 									printf("\n\nDigite o numero do cartao: ");   // Informe o numero do cartão em 4 grupo de 4 digitos  separados por "espaço"
-									cardCredito::    // Função de retorno
+									cardCredito:    // Função de retorno
 									fflush(stdin);  // Limpeza de Buffer do teclado
 									fgets(cartaoDebito,sizeof(cartaoDebito),stdin);   // Recebe o numero de cartão de debito do cliente
 									fflush(stdin);  // Limpeza de Buffer do teclado
